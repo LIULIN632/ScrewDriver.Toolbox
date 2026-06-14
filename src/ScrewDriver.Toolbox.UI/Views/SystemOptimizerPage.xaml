@@ -31,6 +31,28 @@
 
         <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
             <StackPanel>
+                <!-- 垃圾清理快捷入口 -->
+                <Border Style="{StaticResource CardStyle}" Margin="0,0,0,12" Padding="16">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="🗑️" FontSize="28" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="垃圾清理" FontSize="15" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="扫描并清理系统临时文件、浏览器缓存、回收站等垃圾文件，释放磁盘空间"
+                                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
+                                       TextTrimming="CharacterEllipsis" Margin="0,2,0,0"/>
+                        </StackPanel>
+                        <Button Grid.Column="2" Content="打开" Width="80" Height="32" FontSize="12"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Click="BtnClean_Click"/>
+                    </Grid>
+                </Border>
+
                 <ItemsControl ItemsSource="{Binding GroupedSettings}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>

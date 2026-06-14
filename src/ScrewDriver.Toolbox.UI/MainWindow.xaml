@@ -28,17 +28,72 @@
                                Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0"/>
                 </StackPanel>
 
-                <ListBox x:Name="NavListBox" Grid.Row="1" Background="Transparent"
-                         BorderThickness="0" ItemContainerStyle="{StaticResource NavItemStyle}"
-                         SelectionChanged="NavListBox_SelectionChanged">
-                    <ListBoxItem Tag="StartPage">启动</ListBoxItem>
-                    <ListBoxItem Tag="ToolRepositoryPage">工具仓库</ListBoxItem>
-                    <ListBoxItem Tag="SystemOptimizerPage">系统优化</ListBoxItem>
-                    <ListBoxItem Tag="RepairCenterPage">系统修复</ListBoxItem>
-                    <ListBoxItem Tag="HardwarePage">硬件信息</ListBoxItem>
-                    <ListBoxItem Tag="ScenariosPage">场景方案</ListBoxItem>
-                    <ListBoxItem Tag="SettingsPage">设置</ListBoxItem>
-                </ListBox>
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                              Background="Transparent" BorderThickness="0">
+                    <StackPanel>
+                        <!-- 启动 -->
+                        <Border Padding="16,0" Height="48" Cursor="Hand"
+                                Background="Transparent" Tag="StartPage"
+                                Style="{StaticResource NavItemHover}"
+                                MouseLeftButtonDown="NavItem_Click">
+                            <TextBlock Text="启动" FontSize="14" VerticalAlignment="Center"/>
+                        </Border>
+
+                        <!-- 工具仓库（可折叠） -->
+                        <Grid Height="48" Cursor="Hand" Tag="ToolRepositoryPage"
+                              MouseLeftButtonDown="NavItem_Click">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Padding="16,0" Background="Transparent"
+                                    Style="{StaticResource NavItemHover}">
+                                <TextBlock Text="工具仓库" FontSize="14" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Grid.Column="1" x:Name="ExpandIcon" Text="▶" FontSize="10"
+                                       Foreground="{DynamicResource TextTertiaryBrush}"
+                                       VerticalAlignment="Center" Margin="0,0,12,0"
+                                       MouseLeftButtonDown="ToggleCategoryExpand"/>
+                        </Grid>
+
+                        <!-- 分类子项（初始隐藏） -->
+                        <StackPanel x:Name="CategoryPanel" Visibility="Collapsed"
+                                    Background="{DynamicResource NavBackgroundBrush}">
+                        </StackPanel>
+
+                        <!-- 其他导航项 -->
+                        <Border Padding="16,0" Height="48" Cursor="Hand"
+                                Background="Transparent" Tag="SystemOptimizerPage"
+                                Style="{StaticResource NavItemHover}"
+                                MouseLeftButtonDown="NavItem_Click">
+                            <TextBlock Text="系统优化" FontSize="14" VerticalAlignment="Center"/>
+                        </Border>
+                        <Border Padding="16,0" Height="48" Cursor="Hand"
+                                Background="Transparent" Tag="RepairCenterPage"
+                                Style="{StaticResource NavItemHover}"
+                                MouseLeftButtonDown="NavItem_Click">
+                            <TextBlock Text="系统修复" FontSize="14" VerticalAlignment="Center"/>
+                        </Border>
+                        <Border Padding="16,0" Height="48" Cursor="Hand"
+                                Background="Transparent" Tag="HardwarePage"
+                                Style="{StaticResource NavItemHover}"
+                                MouseLeftButtonDown="NavItem_Click">
+                            <TextBlock Text="硬件信息" FontSize="14" VerticalAlignment="Center"/>
+                        </Border>
+                        <Border Padding="16,0" Height="48" Cursor="Hand"
+                                Background="Transparent" Tag="ScenariosPage"
+                                Style="{StaticResource NavItemHover}"
+                                MouseLeftButtonDown="NavItem_Click">
+                            <TextBlock Text="场景方案" FontSize="14" VerticalAlignment="Center"/>
+                        </Border>
+                        <Border Padding="16,0" Height="48" Cursor="Hand"
+                                Background="Transparent" Tag="SettingsPage"
+                                Style="{StaticResource NavItemHover}"
+                                MouseLeftButtonDown="NavItem_Click">
+                            <TextBlock Text="设置" FontSize="14" VerticalAlignment="Center"/>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
 
                 <!-- 底部占位 -->
                 <Border Grid.Row="2" Height="8"/>

@@ -57,4 +57,9 @@ public partial class SystemOptimizerPage : Page
             vm.LoadSettings();
         }
     }
+
+    private void BtnClean_Click(object sender, RoutedEventArgs e)
+    {
+        new CleanWindow { Owner = Window.GetWindow(this) }.ShowDialog();
+    }
 }

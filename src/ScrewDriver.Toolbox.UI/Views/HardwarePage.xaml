@@ -6,217 +6,133 @@
     <Page.DataContext>
         <vm:HardwareViewModel/>
     </Page.DataContext>
-    <Grid>
+    <Grid Margin="0,0,0,0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- 标题栏 + 操作按钮 -->
-        <Grid Grid.Row="0" Margin="0,0,0,16">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-            <TextBlock Text="硬件信息" FontSize="24" FontWeight="Bold"
-                       Foreground="{DynamicResource TextPrimaryBrush}"
-                       VerticalAlignment="Center"/>
-            <TextBlock Grid.Column="1" VerticalAlignment="Bottom" Margin="12,0,0,2"
-                       FontSize="12" Foreground="{DynamicResource TextTertiaryBrush}">
-                <Run Text="更新时间："/>
-                <Run Text="{Binding RefreshTime, Mode=OneWay}"/>
-            </TextBlock>
-            <Button Grid.Column="2" Content="详细信息" Height="30" FontSize="12"
-                    Padding="14,0" Margin="0,0,8,0"
-                    Style="{StaticResource PrimaryButtonStyle}"
-                    Command="{Binding DetailCommand}"/>
-            <Button Grid.Column="3" Content="截图" Height="30" FontSize="12"
-                    Padding="14,0" Margin="0,0,8,0"
-                    Style="{StaticResource SecondaryButtonStyle}"
-                    Command="{Binding ScreenshotCommand}"/>
-            <Button Grid.Column="4" Content="刷新" Height="30" FontSize="12"
-                    Padding="14,0"
-                    Style="{StaticResource SecondaryButtonStyle}"
-                    Command="{Binding RefreshCommand}"/>
+        <!-- 1. 标题 + 功能按钮 -->
+        <Grid Grid.Row="0" Margin="0,0,0,20">
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="硬件信息" FontSize="24" FontWeight="Bold"
+                           Foreground="{DynamicResource TextPrimaryBrush}"/>
+                <TextBlock Text="汇总本机型号、系统和关键硬件参数" Margin="0,6,0,0" FontSize="13"
+                           Foreground="{DynamicResource TextSecondaryBrush}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
+                <Button Content="详细信息" Height="30" FontSize="12" Padding="14,0"
+                        Margin="0,0,8,0"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        Command="{Binding DetailCommand}"/>
+                <Button Content="刷新" Height="30" FontSize="12" Padding="14,0"
+                        Margin="0,0,8,0"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Command="{Binding RefreshCommand}"/>
+                <Button Content="截图" Height="30" FontSize="12" Padding="14,0"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Command="{Binding ScreenshotCommand}"/>
+            </StackPanel>
         </Grid>
 
-        <!-- 顶部 3 个摘要卡片 -->
-        <WrapPanel Grid.Row="1" Margin="0,0,0,20">
-            <!-- 机型 -->
-            <Border Width="240" Height="80" Style="{StaticResource CardStyle}" Margin="0,0,12,0">
-                <Grid Margin="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Border Width="40" Height="40" CornerRadius="8"
-                            Background="{DynamicResource PrimaryLightBrush}"
-                            VerticalAlignment="Center">
-                        <TextBlock Text="💻" FontSize="20"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                    <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
-                        <TextBlock Text="机型" FontSize="11"
-                                   Foreground="{DynamicResource TextTertiaryBrush}"/>
-                        <TextBlock Text="{Binding SystemModel}" FontSize="15" FontWeight="SemiBold"
-                                   Foreground="{DynamicResource TextPrimaryBrush}"
-                                   TextTrimming="CharacterEllipsis"/>
-                        <TextBlock Text="{Binding SystemModelDetail}" FontSize="11"
-                                   Foreground="{DynamicResource TextSecondaryBrush}"
-                                   TextTrimming="CharacterEllipsis"/>
-                    </StackPanel>
-                </Grid>
-            </Border>
-            <!-- 系统版本 -->
-            <Border Width="240" Height="80" Style="{StaticResource CardStyle}" Margin="0,0,12,0">
-                <Grid Margin="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Border Width="40" Height="40" CornerRadius="8"
-                            Background="{DynamicResource PrimaryLightBrush}"
-                            VerticalAlignment="Center">
-                        <TextBlock Text="🪟" FontSize="20"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                    <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
-                        <TextBlock Text="系统版本" FontSize="11"
-                                   Foreground="{DynamicResource TextTertiaryBrush}"/>
-                        <TextBlock Text="{Binding OsVersion}" FontSize="15" FontWeight="SemiBold"
-                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
-                        <TextBlock Text="{Binding OsVersionDetail}" FontSize="11"
-                                   Foreground="{DynamicResource TextSecondaryBrush}"
-                                   TextTrimming="CharacterEllipsis"/>
-                    </StackPanel>
-                </Grid>
-            </Border>
-            <!-- 运行时长 -->
-            <Border Width="240" Height="80" Style="{StaticResource CardStyle}">
-                <Grid Margin="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Border Width="40" Height="40" CornerRadius="8"
-                            Background="{DynamicResource PrimaryLightBrush}"
-                            VerticalAlignment="Center">
-                        <TextBlock Text="⏱" FontSize="20"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                    <StackPanel Grid.Column="1" Margin="10,0,0,0" VerticalAlignment="Center">
-                        <TextBlock Text="运行时长" FontSize="11"
-                                   Foreground="{DynamicResource TextTertiaryBrush}"/>
-                        <TextBlock Text="{Binding Uptime}" FontSize="15" FontWeight="SemiBold"
-                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
-                        <TextBlock Text="{Binding UptimeDetail}" FontSize="11"
-                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
-                    </StackPanel>
-                </Grid>
-            </Border>
-        </WrapPanel>
+        <!-- 2. 顶部 3 个概览卡片 -->
+        <Grid Grid.Row="1" Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
 
-        <!-- 硬件组件卡片 -->
-        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
-            <ItemsControl ItemsSource="{Binding Components}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapPanel/>
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <Border Width="310" MinHeight="140" Style="{StaticResource CardStyle}" Margin="6">
-                            <Grid Margin="4">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="*"/>
-                                </Grid.RowDefinitions>
+            <!-- 型号信息 -->
+            <Border Grid.Column="0" Style="{StaticResource CardStyle}" Margin="0,0,8,0">
+                <StackPanel Orientation="Horizontal">
+                    <Border Width="40" Height="40" CornerRadius="8"
+                            Background="{DynamicResource PrimaryLightBrush}"
+                            VerticalAlignment="Center">
+                        <TextBlock Text="💻" FontSize="18"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="型号信息" FontSize="12"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBlock Text="{Binding SystemModel}" FontSize="14" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                   TextTrimming="CharacterEllipsis" Margin="0,4,0,0"/>
+                        <TextBlock Text="{Binding SystemModelDetail}" FontSize="12"
+                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                   TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- 系统信息 -->
+            <Border Grid.Column="1" Style="{StaticResource CardStyle}" Margin="4,0">
+                <StackPanel Orientation="Horizontal">
+                    <Border Width="40" Height="40" CornerRadius="8"
+                            Background="{DynamicResource PrimaryLightBrush}"
+                            VerticalAlignment="Center">
+                        <TextBlock Text="🪟" FontSize="18"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="系统信息" FontSize="12"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBlock Text="{Binding OsVersion}" FontSize="14" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                   TextTrimming="CharacterEllipsis" Margin="0,4,0,0"/>
+                        <TextBlock Text="{Binding OsVersionDetail}" FontSize="12"
+                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                   TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- 运行时间 -->
+            <Border Grid.Column="2" Style="{StaticResource CardStyle}" Margin="8,0,0,0">
+                <StackPanel Orientation="Horizontal">
+                    <Border Width="40" Height="40" CornerRadius="8"
+                            Background="{DynamicResource PrimaryLightBrush}"
+                            VerticalAlignment="Center">
+                        <TextBlock Text="⏱" FontSize="18"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel Margin="12,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="运行时间" FontSize="12"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                        <TextBlock Text="{Binding Uptime}" FontSize="14" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,4,0,0"/>
+                        <TextBlock Text="上次启动后至今" FontSize="12"
+                                   Foreground="{DynamicResource TextTertiaryBrush}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <!-- 3. 详细硬件列表 -->
+        <Border Grid.Row="2" Style="{StaticResource CardStyle}" Padding="20">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding HardwareItems}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,0,0,2" Height="28">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="100"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-
-                                <!-- 图标 -->
-                                <Border Grid.RowSpan="2" Width="48" Height="48" CornerRadius="10"
-                                        Background="{DynamicResource PrimaryLightBrush}"
-                                        VerticalAlignment="Top" Margin="0,0,12,0">
-                                    <TextBlock Text="{Binding Icon}" FontSize="22"
-                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-
-                                <!-- 名称 + 主信息（点击复制） -->
-                                <StackPanel Grid.Column="1">
-                                    <TextBlock Text="{Binding Name}" FontSize="13"
-                                               Foreground="{DynamicResource TextTertiaryBrush}"/>
-                                    <TextBlock Text="{Binding PrimaryInfo}" FontSize="15" FontWeight="SemiBold"
-                                               Foreground="{DynamicResource TextPrimaryBrush}"
-                                               TextTrimming="CharacterEllipsis" Margin="0,2,0,0"
-                                               Cursor="Hand" ToolTip="点击复制"
-                                               MouseLeftButtonDown="CopyToClipboard"/>
-                                </StackPanel>
-
-                                <!-- 副信息（点击复制） -->
-                                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding SecondaryInfo}"
-                                           FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
-                                           TextWrapping="Wrap" Margin="0,4,0,0"
+                                <TextBlock Grid.Column="0" Text="{Binding Label}" FontSize="13"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="1" Text="{Binding Value}" FontSize="13"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                           TextWrapping="Wrap" VerticalAlignment="Center"
                                            Cursor="Hand" ToolTip="点击复制"
                                            MouseLeftButtonDown="CopyToClipboard"/>
-
-                                <!-- 健康状态 -->
-                                <Border Grid.Row="2" Grid.Column="1" Margin="0,8,0,0" Padding="8,3"
-                                        HorizontalAlignment="Left" CornerRadius="4">
-                                    <Border.Style>
-                                        <Style TargetType="Border">
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding HealthLevel}" Value="normal">
-                                                    <Setter Property="Background" Value="#E6F4EA"/>
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding HealthLevel}" Value="warning">
-                                                    <Setter Property="Background" Value="#FEF3C7"/>
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding HealthLevel}" Value="danger">
-                                                    <Setter Property="Background" Value="#FEE2E2"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Border.Style>
-                                    <TextBlock Text="{Binding HealthStatus}" FontSize="11">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding HealthLevel}" Value="normal">
-                                                        <Setter Property="Foreground" Value="#166534"/>
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding HealthLevel}" Value="warning">
-                                                        <Setter Property="Foreground" Value="#92400E"/>
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding HealthLevel}" Value="danger">
-                                                        <Setter Property="Foreground" Value="#991B1B"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                    </TextBlock>
-                                </Border>
-
-                                <!-- 健康提示 -->
-                                <TextBlock Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2"
-                                           Text="{Binding TipText}" FontSize="11"
-                                           Foreground="{DynamicResource TextTertiaryBrush}"
-                                           TextWrapping="Wrap" Margin="0,6,0,0"
-                                           Visibility="{Binding TipText, Converter={StaticResource StrToVis}}"/>
                             </Grid>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
     </Grid>
 </Page>

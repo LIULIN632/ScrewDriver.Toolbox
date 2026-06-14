@@ -24,6 +24,14 @@ public partial class ToolRepositoryPage : Page
         Loaded += Page_Loaded;
     }
 
+    public ToolRepositoryPage(string initialCategory)
+    {
+        InitializeComponent();
+        if (DataContext is ToolRepositoryViewModel vm)
+            vm.SelectedCategory = initialCategory;
+        Loaded += Page_Loaded;
+    }
+
     private void Page_Loaded(object sender, RoutedEventArgs e)
     {
         if (DataContext is ToolRepositoryViewModel vm)

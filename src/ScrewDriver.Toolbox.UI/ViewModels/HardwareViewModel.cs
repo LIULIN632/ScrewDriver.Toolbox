@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Threading;
 using ScrewDriver.Toolbox.Core;
 using ScrewDriver.Toolbox.Core.Models;
 using ScrewDriver.Toolbox.Hardware.Services;
@@ -12,9 +13,11 @@ namespace ScrewDriver.Toolbox.UI.ViewModels;
 public class HardwareViewModel : BaseViewModel
 {
     private readonly HardwareService _hardwareService = new();
+    private readonly DispatcherTimer _uptimeTimer;
+    private DateTime _bootTime;
 
-    public ObservableCollection<HardwareComponent> Components { get; } = new();
-    public string RefreshTime { get; private set; } = "加载中...";
+    // 硬件明细列表
+    public ObservableCollection<HardwareDetailItem> HardwareItems { get; } = new();
 
     // 顶部摘要卡片
     public string SystemModel { get; private set; } = "检测中...";
@@ -22,7 +25,7 @@ public class HardwareViewModel : BaseViewModel
     public string OsVersion { get; private set; } = "检测中...";
     public string OsVersionDetail { get; private set; } = "";
     public string Uptime { get; private set; } = "检测中...";
-    public string UptimeDetail { get; private set; } = "";
+    public string RefreshTime { get; private set; } = "";
 
     public ICommand RefreshCommand { get; }
     public ICommand DetailCommand { get; }
@@ -34,22 +37,21 @@ public class HardwareViewModel : BaseViewModel
         DetailCommand = new RelayCommand(_ => NavigateToDetail());
         ScreenshotCommand = new RelayCommand(_ => TakeScreenshot());
 
+        _uptimeTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        _uptimeTimer.Tick += (_, _) => UpdateUptime();
+        _uptimeTimer.Start();
+
         LoadData();
     }
 
     private void Refresh()
     {
-        Components.Clear();
+        HardwareItems.Clear();
         LoadData();
     }
 
     private void LoadData()
     {
-        // 硬件组件
-        var all = _hardwareService.GetAllHardwareInfo();
-        foreach (var c in all)
-            Components.Add(c);
-
         // 摘要卡片：机型
         var manufacturer = SystemInfo.DetectHardwareBrand() ?? "未知";
         var model = SystemInfo.DetectSystemModel() ?? "未知";
@@ -66,26 +68,66 @@ public class HardwareViewModel : BaseViewModel
         OnPropertyChanged(nameof(OsVersionDetail));
 
         // 摘要卡片：运行时长
-        Uptime = HardwareService.GetSystemUptime();
-        UptimeDetail = $"上次启动后至今";
+        _bootTime = GetBootTime();
+        UpdateUptime();
         OnPropertyChanged(nameof(Uptime));
-        OnPropertyChanged(nameof(UptimeDetail));
 
+        // 硬件明细
         RefreshTime = DateTime.Now.ToString("HH:mm:ss");
         OnPropertyChanged(nameof(RefreshTime));
+
+        // 从 GetAllDetailInfo 展开为平面列表（每个模块取首条关键信息）
+        var modules = _hardwareService.GetAllDetailInfo();
+        HardwareItems.Clear();
+
+        foreach (var module in modules)
+        {
+            if (module.Items.Count == 0) continue;
+            // 模块标题行
+            HardwareItems.Add(new HardwareDetailItem { Label = $"【{module.ModuleName}】", Value = "" });
+            foreach (var item in module.Items)
+            {
+                HardwareItems.Add(item);
+            }
+        }
+    }
+
+    // 运行时长每秒刷新
+    private void UpdateUptime()
+    {
+        if (_bootTime == default) return;
+        var span = DateTime.Now - _bootTime;
+        Uptime = span.Days > 0
+            ? $"{span.Days} 天 {span.Hours} 小时 {span.Minutes} 分钟 {span.Seconds} 秒"
+            : $"{span.Hours} 小时 {span.Minutes} 分钟 {span.Seconds} 秒";
+        OnPropertyChanged(nameof(Uptime));
+    }
+
+    private static DateTime GetBootTime()
+    {
+        try
+        {
+            using var searcher = new System.Management.ManagementObjectSearcher("SELECT LastBootUpTime FROM Win32_OperatingSystem");
+            foreach (var obj in searcher.Get())
+            {
+                if (obj["LastBootUpTime"] is string dmtf && dmtf.Length >= 14)
+                    return new DateTime(
+                        int.Parse(dmtf[..4]), int.Parse(dmtf[4..6]), int.Parse(dmtf[6..8]),
+                        int.Parse(dmtf[8..10]), int.Parse(dmtf[10..12]), int.Parse(dmtf[12..14]));
+            }
+        }
+        catch { }
+        return DateTime.MinValue;
     }
 
     private static void NavigateToDetail()
     {
         if (WpfApp.Current.MainWindow is MainWindow main)
-        {
             main.MainFrame.Navigate(new HardwareDetailPage());
-        }
     }
 
     private static void TakeScreenshot()
     {
-        // 简单截图：弹出保存对话框或复制到剪贴板
         try
         {
             System.Windows.Clipboard.SetText("截图功能待实现");

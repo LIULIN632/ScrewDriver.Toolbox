@@ -117,7 +117,10 @@ public static class ToolRegistry
             OfficialUrl = "https://www.cpubenchmark.net/", RiskLevel = "安全" },
         new() { Name = "CPU 天梯图", Category = "显卡工具",
             Description = "查看桌面/笔记本 GPU 性能天梯图，对比显卡游戏性能和跑分排名",
-            OfficialUrl = "https://www.videocardbenchmark.net/", RiskLevel = "安全" }
+            OfficialUrl = "https://www.videocardbenchmark.net/", RiskLevel = "安全" },
+        new() { Name = "Win11 轻松设置", Category = "系统工具",
+            Description = "Windows 11 系统设置优化工具，一键关闭广告/禁用Defender/调整隐私/恢复经典菜单等",
+            OfficialUrl = "https://www.bilibili.com/read/cv24956327/", RiskLevel = "注意" }
     });
 
     // ============================================================

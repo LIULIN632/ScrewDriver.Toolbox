@@ -16,54 +16,16 @@
         <vm:ToolRepositoryViewModel/>
     </Page.DataContext>
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="160"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- ========== 顶栏：标题 ========== -->
-        <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="工具仓库" FontSize="24" FontWeight="Bold"
+        <TextBlock Grid.Row="0" Text="工具仓库" FontSize="24" FontWeight="Bold"
                    Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
-
-        <!-- ========== 左侧：分类导航 ========== -->
-        <Border Grid.Row="1" Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}"
-                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1,1,0,1"
-                CornerRadius="10,0,0,10" Padding="4">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <ListBox ItemsSource="{Binding Categories}"
-                         SelectedItem="{Binding SelectedCategory}"
-                         Background="Transparent" BorderThickness="0"
-                         ItemContainerStyle="{StaticResource SideCategoryStyle}">
-                    <ListBox.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel/>
-                        </ItemsPanelTemplate>
-                    </ListBox.ItemsPanel>
-                </ListBox>
-            </ScrollViewer>
-        </Border>
-
-        <!-- 分隔线 -->
-        <Rectangle Grid.Row="1" Grid.Column="0" Width="1"
-                   Fill="{DynamicResource BorderBrush}"
-                   HorizontalAlignment="Right" Margin="0,0,-1,0"/>
-
-        <!-- ========== 右侧：内容区 ========== -->
-        <Border Grid.Row="1" Grid.Column="1"
-                Background="{DynamicResource CardBackgroundBrush}"
-                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,1,1"
-                CornerRadius="0,10,10,0" Padding="16,12">
-            <Grid>
-                <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
 
         <!-- 扫描进度 -->
         <Border Grid.Row="0" Style="{StaticResource CardStyle}" Margin="0,0,0,10"
@@ -287,7 +249,5 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </ScrollViewer>
-            </Grid>
-        </Border>
-        </Grid>
+    </Grid>
 </Page>

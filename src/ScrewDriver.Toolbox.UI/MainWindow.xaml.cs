@@ -2,9 +2,12 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Media;
 using ScrewDriver.Toolbox.Core.Services;
 using ScrewDriver.Toolbox.UI.Services;
+using ScrewDriver.Toolbox.UI.ViewModels;
 using ScrewDriver.Toolbox.UI.Views;
 using Application = System.Windows.Application;
 
@@ -13,6 +16,7 @@ namespace ScrewDriver.Toolbox.UI;
 public partial class MainWindow : Window
 {
     private TrayIconManager? _trayIconManager;
+    private bool _categoryExpanded;
 
     [DllImport("dwmapi.dll")]
     private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
@@ -23,7 +27,6 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         MainFrame.Navigate(new StartPage());
-        NavListBox.SelectedIndex = 0;
 
         SourceInitialized += (_, _) =>
         {
@@ -36,6 +39,28 @@ public partial class MainWindow : Window
         {
             Dispatcher.Invoke(ApplyTitleBarTheme);
         };
+
+        // 预创建分类列表项（避免展开时卡顿）
+        foreach (var cat in ToolRegistry.Categories)
+        {
+            var border = new Border
+            {
+                Padding = new Thickness(32, 0, 0, 0),
+                Height = 36,
+                Cursor = System.Windows.Input.Cursors.Hand,
+                Background = System.Windows.Media.Brushes.Transparent,
+                DataContext = cat
+            };
+            border.MouseLeftButtonDown += CategoryItem_Click;
+            border.Child = new TextBlock
+            {
+                Text = cat,
+                FontSize = 13,
+                VerticalAlignment = VerticalAlignment.Center,
+                Foreground = FindResource("TextSecondaryBrush") as System.Windows.Media.Brush
+            };
+            CategoryPanel.Children.Add(border);
+        }
     }
 
     private void ApplyTitleBarTheme()
@@ -48,7 +73,6 @@ public partial class MainWindow : Window
 
     protected override void OnClosing(CancelEventArgs e)
     {
-        // 直接退出进程，释放文件锁，方便下次打包
         _trayIconManager?.Dispose();
         base.OnClosing(e);
     }
@@ -66,36 +90,32 @@ public partial class MainWindow : Window
         Application.Current.Shutdown();
     }
 
-    private void NavListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void NavItem_Click(object sender, MouseButtonEventArgs e)
     {
-        if (NavListBox.SelectedItem is not ListBoxItem item) return;
-
-        Page? page = item.Tag.ToString() switch
+        if (sender is Border border && border.Tag is string tag)
         {
-            "StartPage" => new StartPage(),
-            "ToolRepositoryPage" => new ToolRepositoryPage(),
-            "SystemOptimizerPage" => new SystemOptimizerPage(),
-            "RepairCenterPage" => new RepairCenterPage(),
-            "HardwarePage" => new HardwarePage(),
-            "ScenariosPage" => new ScenariosPage(),
-            "SettingsPage" => new SettingsPage(),
-            _ => null
-        };
+            NavigateToPageByTag(tag);
+        }
+    }
 
-        if (page != null) MainFrame.Navigate(page);
+    private void ToggleCategoryExpand(object sender, MouseButtonEventArgs e)
+    {
+        _categoryExpanded = !_categoryExpanded;
+        CategoryPanel.Visibility = _categoryExpanded ? Visibility.Visible : Visibility.Collapsed;
+        ExpandIcon.Text = _categoryExpanded ? "▼" : "▶";
+        e.Handled = true;
+    }
+
+    private void CategoryItem_Click(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is Border border && border.DataContext is string category)
+        {
+            MainFrame.Navigate(new ToolRepositoryPage(category));
+        }
     }
 
     public void NavigateToPageByTag(string tag)
     {
-        foreach (ListBoxItem item in NavListBox.Items)
-        {
-            if (item.Tag is string s && s == tag)
-            {
-                item.IsSelected = true;
-                return;
-            }
-        }
-
         Page? page = tag switch
         {
             "StartPage" => new StartPage(),
