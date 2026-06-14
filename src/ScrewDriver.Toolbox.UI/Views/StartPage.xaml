@@ -1,0 +1,107 @@
+<Page x:Class="ScrewDriver.Toolbox.UI.Views.StartPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:vm="clr-namespace:ScrewDriver.Toolbox.UI.ViewModels"
+      Title="启动页">
+    <Page.DataContext>
+        <vm:StartPageViewModel/>
+    </Page.DataContext>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="32,36">
+            <!-- 标题 -->
+            <TextBlock Text="已安装工具" FontSize="28" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,20"/>
+
+            <!-- 搜索 + 分类 -->
+            <Border Background="{DynamicResource CardBackgroundBrush}"
+                    CornerRadius="10" Padding="8,4"
+                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                    Margin="0,0,0,24" MaxWidth="480">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource SearchBoxStyle}"/>
+                    <TextBlock Grid.Column="0" IsHitTestVisible="False"
+                               Text="搜索工具..."
+                               Foreground="{DynamicResource TextTertiaryBrush}" FontSize="14"
+                               VerticalAlignment="Center" Margin="2,0,0,0">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SearchText}" Value="">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding SearchText}" Value="{x:Null}">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <ComboBox Grid.Column="1" ItemsSource="{Binding Categories}"
+                              SelectedItem="{Binding SelectedCategory}"
+                              Width="120" Height="32"
+                              Background="Transparent"
+                              Foreground="{DynamicResource TextPrimaryBrush}"
+                              BorderThickness="0"/>
+                </Grid>
+            </Border>
+
+            <!-- 全部工具 -->
+            <TextBlock Text="全部工具" FontSize="14" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,16"/>
+
+            <ItemsControl ItemsSource="{Binding FilteredTools}" HorizontalAlignment="Left">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource ToolIconStyle}" Margin="4"
+                                MouseLeftButtonDown="ToolIcon_Click">
+                            <Grid Width="96" Height="96"
+                                  HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                    <Image Source="{Binding IconPath,
+                                            Converter={StaticResource IconPathConverter}}"
+                                           Width="48" Height="48"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock Text="{Binding Name}" FontSize="12"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
+                                               HorizontalAlignment="Center"
+                                               TextTrimming="CharacterEllipsis"
+                                               MaxWidth="88"
+                                               Margin="0,6,0,0"
+                                               TextAlignment="Center"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- 底部状态栏 -->
+            <Border Background="{DynamicResource NavBackgroundBrush}"
+                    CornerRadius="8" Padding="12" Margin="0,32,0,0">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock FontSize="12" Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,0,24,0">
+                        <Run Text="Windows: "/>
+                        <Run Text="{Binding WindowsVersion, Mode=OneWay}"/>
+                    </TextBlock>
+                    <TextBlock FontSize="12" Foreground="{DynamicResource PrimaryBrush}" Margin="0,0,24,0">
+                        <Run Text="{Binding IsAdmin, Mode=OneWay}"/>
+                    </TextBlock>
+                    <TextBlock FontSize="12" Foreground="{DynamicResource TextTertiaryBrush}">
+                        <Run Text="设备: "/>
+                        <Run Text="{Binding DeviceBrand, Mode=OneWay}"/>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

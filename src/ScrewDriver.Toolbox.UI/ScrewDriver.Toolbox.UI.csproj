@@ -1,0 +1,47 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <RootNamespace>ScrewDriver.Toolbox.UI</RootNamespace>
+    <AssemblyName>ScrewDriver.Toolbox</AssemblyName>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+
+    <!-- 版本号 -->
+    <Version>1.0.0.0</Version>
+    <FileVersion>1.0.0.0</FileVersion>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+
+    <!-- 单文件发布 -->
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <PublishTrimmed>false</PublishTrimmed>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+
+    <!-- 程序集元数据 -->
+    <Product>ScrewDriver Toolbox</Product>
+    <Description>Windows 可信工具箱 - 硬件检测、系统优化、工具分发</Description>
+    <Company>ScrewDriver</Company>
+    <Copyright>© 2026 ScrewDriver</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ScrewDriver.Toolbox.Core\ScrewDriver.Toolbox.Core.csproj" />
+    <ProjectReference Include="..\ScrewDriver.Toolbox.Hardware\ScrewDriver.Toolbox.Hardware.csproj" />
+    <ProjectReference Include="..\ScrewDriver.Toolbox.SystemTools\ScrewDriver.Toolbox.SystemTools.csproj" />
+    <ProjectReference Include="..\ScrewDriver.Toolbox.Utils\ScrewDriver.Toolbox.Utils.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Tools\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <Resource Include="Resources\Icons\*.png" />
+  </ItemGroup>
+
+</Project>

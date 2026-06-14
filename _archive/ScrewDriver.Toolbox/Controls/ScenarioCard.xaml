@@ -1,0 +1,41 @@
+<!-- ScenarioCard.xaml - 场景方案卡片 -->
+<UserControl
+    x:Class="ScrewDriver.Toolbox.Controls.ScenarioCard"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Border
+        Background="{ThemeResource CardBackground}"
+        CornerRadius="12"
+        Padding="20"
+        Width="320"
+        Height="200">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="12">
+                <TextBlock x:Name="IconText" Text="{x:Bind ScenarioIcon, Mode=OneWay}" FontSize="32"/>
+                <TextBlock Text="{x:Bind ScenarioName, Mode=OneWay}"
+                           Style="{StaticResource SubtitleTextBlockStyle}"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <TextBlock Grid.Row="1"
+                       Text="{x:Bind ScenarioDescription, Mode=OneWay}"
+                       Style="{StaticResource BodyTextBlockStyle}"
+                       Foreground="{ThemeResource TextFillColorSecondary}"
+                       TextWrapping="Wrap"
+                       VerticalAlignment="Center"
+                       Margin="0,8"/>
+
+            <Button Grid.Row="2"
+                    Content="开始执行"
+                    HorizontalAlignment="Right"
+                    Click="OnExecuteClick"
+                    Style="{StaticResource AccentButtonStyle}"/>
+        </Grid>
+    </Border>
+</UserControl>

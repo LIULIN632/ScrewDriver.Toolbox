@@ -1,0 +1,82 @@
+<!-- RepairCenterPage.xaml - 系统修复 -->
+<Page
+    x:Class="ScrewDriver.Toolbox.Views.RepairCenterPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:services="using:ScrewDriver.Toolbox.Services"
+    x:DefaultBindMode="OneWay">
+
+    <Grid Padding="24,24,40,24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- 头部 -->
+        <StackPanel Grid.Row="0" Spacing="4">
+            <TextBlock Text="{x:Bind ViewModel.PageTitle}" Style="{StaticResource PageHeaderStyle}"/>
+            <TextBlock Text="{x:Bind ViewModel.PageDescription}" Style="{StaticResource PageSubHeaderStyle}"/>
+        </StackPanel>
+
+        <!-- 问题场景入口 -->
+        <ScrollViewer Grid.Row="1" HorizontalScrollMode="Auto" VerticalScrollMode="Disabled" Margin="0,0,0,16">
+            <ItemsRepeater ItemsSource="{x:Bind ViewModel.Problems}">
+                <ItemsRepeater.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                        <Button Content="{x:Bind}" Margin="0,0,8,0" MinWidth="100" Height="48"
+                                CornerRadius="8" FontSize="14" Padding="16,0"/>
+                    </DataTemplate>
+                </ItemsRepeater.ItemTemplate>
+                <ItemsRepeater.Layout>
+                    <StackLayout Orientation="Horizontal"/>
+                </ItemsRepeater.Layout>
+            </ItemsRepeater>
+        </ScrollViewer>
+
+        <!-- 诊断按钮 -->
+        <Button Grid.Row="2" Content="🔍 运行系统诊断"
+                Command="{x:Bind ViewModel.RunDiagnosticsCommand}"
+                HorizontalAlignment="Left"
+                Margin="0,0,0,16"
+                CornerRadius="8"
+                Padding="20,10"/>
+
+        <!-- 解决方案列表 -->
+        <ScrollViewer Grid.Row="3">
+            <StackPanel Spacing="8">
+                <!-- 诊断信息 -->
+                <Border Background="{ThemeResource CardBackground}" CornerRadius="8" Padding="16"
+                        Visibility="Visible">
+                    <TextBlock Text="{x:Bind ViewModel.DiagnosticInfo}"
+                               Foreground="{ThemeResource TextFillColorSecondary}"/>
+                </Border>
+
+                <ItemsRepeater ItemsSource="{x:Bind ViewModel.Solutions}">
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate x:DataType="services:RepairSolution">
+                            <Border Background="{ThemeResource CardBackground}" CornerRadius="8" Padding="16">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0">
+                                        <TextBlock Text="{x:Bind Name}" Style="{StaticResource BodyStrongTextBlockStyle}"/>
+                                        <TextBlock Text="{x:Bind Description}"
+                                                   Foreground="{ThemeResource TextFillColorSecondary}"/>
+                                    </StackPanel>
+                                    <Button Grid.Column="1" Content="执行"
+                                            VerticalAlignment="Center"
+                                            Style="{StaticResource AccentButtonStyle}"
+                                            CornerRadius="6"/>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

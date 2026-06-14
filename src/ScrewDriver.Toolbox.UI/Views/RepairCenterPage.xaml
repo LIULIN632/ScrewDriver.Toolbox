@@ -1,0 +1,58 @@
+<Page x:Class="ScrewDriver.Toolbox.UI.Views.RepairCenterPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:vm="clr-namespace:ScrewDriver.Toolbox.UI.ViewModels"
+      Title="系统修复">
+    <Page.DataContext>
+        <vm:RepairCenterViewModel/>
+    </Page.DataContext>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="系统修复" FontSize="24" FontWeight="Bold"
+                   Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"/>
+
+        <TextBlock Grid.Row="1" Text="常见问题一键检测与修复，安全可靠"
+                   FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,16"/>
+
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding Scenarios}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="2"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource CardStyle}" MinHeight="160">
+                            <Grid Margin="4">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Grid.Row="1" Text="{Binding Cause}" FontSize="12"
+                                           Foreground="{DynamicResource ErrorBrush}" Margin="0,4,0,0"/>
+                                <TextBlock Grid.Row="2" Text="{Binding Description}" FontSize="13"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           TextWrapping="Wrap" VerticalAlignment="Center" Margin="0,8,0,0"/>
+                                <Button Grid.Row="3" Content="一键修复" Style="{StaticResource PrimaryButtonStyle}"
+                                        Height="32" FontSize="13" Padding="16,0" Margin="0,12,0,0"
+                                        Command="{Binding DataContext.ExecuteRepairCommand,
+                                            RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding}"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
+</Page>

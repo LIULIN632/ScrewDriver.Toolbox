@@ -1,0 +1,38 @@
+# .NET build
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+*.exe.config
+*.nupkg
+packages/
+
+# IDE
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.vs/
+*.userprefs
+
+# VS Code
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Codegraph / Claude
+.codegraph/
+.claude/
+
+# Personal / internal files
+.reasonix/
+
+# Build output
+dist/
+publish/

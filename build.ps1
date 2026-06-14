@@ -1,0 +1,62 @@
+# ScrewDriver.Toolbox build script
+param(
+    [string]$Config = "Release",
+    [string]$Runtime = "win-x64",
+    [string]$Version = "1.0.0"
+)
+
+$ErrorActionPreference = "Stop"
+$RootDir = $PSScriptRoot
+$UiProject = "$RootDir\src\ScrewDriver.Toolbox.UI\ScrewDriver.Toolbox.UI.csproj"
+$DistDir = "$RootDir\publish"
+$PublishDir = "$RootDir\src\ScrewDriver.Toolbox.UI\bin\$Config\net10.0-windows\$Runtime\publish"
+
+Write-Host "=== ScrewDriver.Toolbox Build v$Version ===" -ForegroundColor Cyan
+Write-Host ""
+
+# 1. Clean
+Write-Host "[1/3] Cleaning..." -ForegroundColor Yellow
+if (Test-Path $DistDir) { Remove-Item -Recurse -Force $DistDir }
+dotnet clean $UiProject -c $Config --verbosity quiet
+
+# 2. Publish
+Write-Host "[2/3] Publishing single-file..." -ForegroundColor Yellow
+dotnet publish $UiProject -c $Config -r $Runtime `
+    --self-contained true `
+    -p:PublishSingleFile=true `
+    -p:PublishReadyToRun=true `
+    -p:Version=$Version `
+    -p:AssemblyVersion=$Version `
+    -p:FileVersion=$Version `
+    --verbosity minimal
+
+if ($LASTEXITCODE -ne 0) { Write-Host "Publish failed!" -ForegroundColor Red; exit 1 }
+
+# 3. Package
+Write-Host "[3/3] Packaging..." -ForegroundColor Yellow
+New-Item -ItemType Directory -Force -Path $DistDir | Out-Null
+
+# Copy exe
+Copy-Item "$PublishDir\ScrewDriver.Toolbox.exe" "$DistDir\ScrewDriver.Toolbox.exe"
+
+# Copy Tools/ if exists
+$ToolsDir = "$RootDir\src\ScrewDriver.Toolbox.UI\Tools"
+if (Test-Path $ToolsDir) {
+    Copy-Item -Recurse $ToolsDir "$DistDir\Tools"
+    Write-Host "  Tools/ directory included" -ForegroundColor Gray
+}
+
+# Create ZIP
+$ZipName = "ScrewDriverToolbox_v$Version`_x64.zip"
+$ZipPath = "$DistDir\$ZipName"
+Compress-Archive -Path "$DistDir\ScrewDriver.Toolbox.exe", "$DistDir\Tools" -DestinationPath $ZipPath -Force
+
+Write-Host ""
+Write-Host "=== Build Complete ===" -ForegroundColor Green
+Write-Host "EXE : $DistDir\ScrewDriver.Toolbox.exe" -ForegroundColor White
+Write-Host "ZIP : $ZipPath" -ForegroundColor White
+
+$exeSize = (Get-Item "$DistDir\ScrewDriver.Toolbox.exe").Length / 1MB
+$zipSize = (Get-Item $ZipPath).Length / 1MB
+Write-Host "EXE size: $([math]::Round($exeSize, 1)) MB" -ForegroundColor Gray
+Write-Host "ZIP size: $([math]::Round($zipSize, 1)) MB" -ForegroundColor Gray

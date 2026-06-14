@@ -1,0 +1,120 @@
+<Page x:Class="ScrewDriver.Toolbox.UI.Views.ScenariosPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:vm="clr-namespace:ScrewDriver.Toolbox.UI.ViewModels"
+      Title="场景方案">
+    <Page.DataContext>
+        <vm:ScenarioViewModel/>
+    </Page.DataContext>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="场景方案" FontSize="24" FontWeight="Bold"
+                   Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"/>
+
+        <TextBlock Grid.Row="1" Text="一键式场景化方案，多步操作顺序执行，降低专业工具门槛"
+                   FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,16"/>
+
+        <!-- 方案卡片区域 -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding Scenarios}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Columns="2"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource CardStyle}" MinHeight="220" Margin="6">
+                            <Grid Margin="4">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- 图标 + 名称 -->
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding Icon}" FontSize="28"
+                                               VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <TextBlock Text="{Binding Name}" FontSize="18" FontWeight="Bold"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+
+                                <!-- 描述 -->
+                                <TextBlock Grid.Row="1" Text="{Binding Description}" FontSize="13"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           TextWrapping="Wrap" Margin="0,6,0,8"/>
+
+                                <!-- 步骤预览 -->
+                                <Border Grid.Row="2" Background="{DynamicResource BackgroundBrush}"
+                                        CornerRadius="6" Padding="8">
+                                    <ItemsControl ItemsSource="{Binding Steps}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock FontSize="12" Margin="0,2" IsEnabled="{Binding IsEnabled}">
+                                                    <Run Text="· "/>
+                                                    <Run Text="{Binding Description, Mode=OneWay}"
+                                                         Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                </TextBlock>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </Border>
+
+                                <!-- 步骤数 -->
+                                <TextBlock Grid.Row="3" FontSize="11" Margin="0,8,0,0"
+                                           Foreground="{DynamicResource TextTertiaryBrush}">
+                                    <Run Text="共 "/>
+                                    <Run Text="{Binding Steps.Count, Mode=OneTime}"/>
+                                    <Run Text=" 个步骤"/>
+                                </TextBlock>
+
+                                <!-- 启动按钮 -->
+                                <Button Grid.Row="4" Content="启动方案" Style="{StaticResource PrimaryButtonStyle}"
+                                        Height="36" FontSize="14" Margin="0,8,0,0"
+                                        Command="{Binding DataContext.ExecuteScenarioCommand,
+                                            RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding}"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- 执行状态栏 -->
+        <Border Grid.Row="3" Margin="0,16,0,0" Padding="16">
+            <Border.Style>
+                <Style TargetType="Border" BasedOn="{StaticResource CardStyle}">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsRunning}" Value="False">
+                            <Setter Property="Background" Value="{DynamicResource BackgroundBrush}"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                    <TextBlock Text="执行状态" FontSize="13" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,8,0"/>
+                    <TextBlock Text="{Binding StatusText}" FontSize="12"
+                               Foreground="{DynamicResource SuccessBrush}"/>
+                </StackPanel>
+                <ProgressBar Height="6" Value="{Binding ProgressValue}"
+                             Foreground="{DynamicResource PrimaryBrush}"
+                             Background="{DynamicResource BorderBrush}"/>
+                <TextBlock Text="{Binding CurrentStepDescription}" FontSize="12"
+                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,6,0,0"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Page>
