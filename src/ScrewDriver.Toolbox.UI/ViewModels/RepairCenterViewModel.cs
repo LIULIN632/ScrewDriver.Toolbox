@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using ScrewDriver.Toolbox.Core.Models;
 using ScrewDriver.Toolbox.Core.Services;
@@ -12,13 +13,23 @@ public class RepairCenterViewModel : BaseViewModel
     private readonly RecentToolsService _recentService = new();
 
     public ObservableCollection<RepairScenario> Scenarios { get; } = new();
+    public ObservableCollection<ToolItem> InstalledTools { get; } = new();
 
     public RelayCommand ExecuteRepairCommand { get; }
+    public RelayCommand LaunchToolCommand { get; }
+
+    private static readonly HashSet<string> _repairCategories = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "系统工具", "安全工具", "CPU工具", "主板工具", "内存工具",
+        "显卡工具", "硬盘工具", "屏幕工具", "外设工具", "网络工具"
+    };
 
     public RepairCenterViewModel()
     {
         foreach (var s in BuildScenarios())
             Scenarios.Add(s);
+
+        RefreshInstalledTools();
 
         ExecuteRepairCommand = new RelayCommand(param =>
         {
@@ -51,6 +62,46 @@ public class RepairCenterViewModel : BaseViewModel
             MessageBox.Show($"「{scenario.Name}」修复完成。", "完成",
                 MessageBoxButton.OK, MessageBoxImage.Information);
         });
+
+        LaunchToolCommand = new RelayCommand(param =>
+        {
+            if (param is not ToolItem tool) return;
+
+            string? path = tool.LocalExePath ?? tool.LaunchPath;
+            if (string.IsNullOrEmpty(path) || !File.Exists(path))
+            {
+                MessageBox.Show($"工具文件缺失\n\n{tool.Name} 的程序文件未找到。",
+                    "启动失败", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            try
+            {
+                Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
+                _recentService.AddTool(tool.Name, "RepairCenterPage");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"启动失败: {ex.Message}", "错误",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        });
+
+        InstalledToolsCache.Instance.CacheUpdated += () =>
+        {
+            System.Windows.Application.Current.Dispatcher.Invoke(RefreshInstalledTools);
+        };
+    }
+
+    private void RefreshInstalledTools()
+    {
+        var tools = InstalledToolsCache.Instance.InstalledTools
+            .Where(t => _repairCategories.Contains(t.Category))
+            .ToList();
+
+        InstalledTools.Clear();
+        foreach (var t in tools)
+            InstalledTools.Add(t);
     }
 
     private static List<RepairScenario> BuildScenarios() => new()
@@ -85,10 +136,10 @@ public class RepairCenterViewModel : BaseViewModel
         },
         new()
         {
-            Name = "游戏掉帧",
-            Cause = "电源计划为节能模式或后台进程干扰",
-            Description = "切换电源计划为高性能模式",
-            Commands = new List<string> { "powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c" }
+            Name = "游戏掉线",
+            Cause = "DNS 解析延迟或网络协议栈异常",
+            Description = "刷新 DNS 缓存并重置网络协议栈，切换高性能电源计划",
+            Commands = new List<string> { "ipconfig /flushdns", "netsh winsock reset", "netsh int ip reset", "powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c" }
         },
         new()
         {

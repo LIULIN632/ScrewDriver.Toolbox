@@ -40,9 +40,9 @@ public class ToolRepositoryViewModel : BaseViewModel
 
     public List<string> Categories { get; } = new()
     {
-        "全部", "系统工具", "CPU工具", "显卡工具", "内存工具",
-        "磁盘工具", "屏幕工具", "综合检测", "网络工具",
-        "外设工具", "游戏工具", "其他工具", "品牌工具"
+        "全部", "系统工具", "CPU工具", "主板工具", "内存工具",
+        "显卡工具", "硬盘工具", "屏幕工具", "外设工具",
+        "网络工具", "安全工具", "品牌工具", "启动与镜像", "其他工具"
     };
 
     public string SearchText
@@ -433,7 +433,7 @@ public class ToolRepositoryViewModel : BaseViewModel
 
     private void LoadRecommendedTools()
     {
-        var recommendedNames = new[] { "Everything", "Geek Uninstaller", "CPU-Z", "Dism++" };
+        var recommendedNames = new[] { "Everything", "Geek Uninstaller", "CPU-Z", "Dism++", "磁盘分析", "硬件监控", "网速测试", "磁盘测试" };
         foreach (var name in recommendedNames)
         {
             var tool = AllTools.FirstOrDefault(t =>

@@ -36,3 +36,8 @@ Thumbs.db
 # Build output
 dist/
 publish/
+publish_new/
+build_output/
+_publish_*/
+_dist_*/
+_archive/

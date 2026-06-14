@@ -13,6 +13,12 @@ namespace ScrewDriver.Toolbox.UI.ViewModels;
 
 public class StartPageViewModel : BaseViewModel
 {
+    // 启动页白名单：只显示以下工具
+    private static readonly HashSet<string> StartPageWhitelist = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "Everything", "Dism++", "DirectX 修复工具"
+    };
+
     private string _searchText = string.Empty;
     private string _selectedCategory = "全部";
     private string _windowsVersion = string.Empty;
@@ -54,6 +60,8 @@ public class StartPageViewModel : BaseViewModel
     }
 
     public ICommand LaunchToolCommand { get; }
+    public ICommand ClearSearchCommand { get; }
+    public ICommand TogglePinCommand { get; }
 
     public StartPageViewModel()
     {
@@ -65,6 +73,12 @@ public class StartPageViewModel : BaseViewModel
         DeviceBrand = SystemInfo.DetectHardwareBrand() ?? "未知设备";
 
         LaunchToolCommand = new RelayCommand(LaunchTool);
+        ClearSearchCommand = new RelayCommand(_ => SearchText = string.Empty);
+        TogglePinCommand = new RelayCommand(param =>
+        {
+            if (param is not string name) return;
+            InstalledToolsCache.Instance.TogglePin(name);
+        });
 
         InstalledToolsCache.Instance.CacheUpdated += OnCacheUpdated;
         RefreshFromCache();
@@ -80,6 +94,9 @@ public class StartPageViewModel : BaseViewModel
         FilteredTools.Clear();
         IEnumerable<ToolItem> all = InstalledToolsCache.Instance.InstalledTools;
 
+        // 启动页只显示白名单工具，其他页面不受影响
+        all = all.Where(t => StartPageWhitelist.Contains(t.Name));
+
         if (!string.IsNullOrEmpty(SearchText))
             all = all.Where(t =>
                 t.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
@@ -87,6 +104,8 @@ public class StartPageViewModel : BaseViewModel
 
         if (SelectedCategory != "全部")
             all = all.Where(t => t.Category == SelectedCategory);
+
+        all = all.OrderByDescending(t => t.IsPinned).ThenBy(t => t.Name);
 
         foreach (var t in all)
             FilteredTools.Add(t);

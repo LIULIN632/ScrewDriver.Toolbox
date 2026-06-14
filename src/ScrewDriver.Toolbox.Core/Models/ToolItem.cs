@@ -15,4 +15,5 @@ public class ToolItem
     public string? LocalExePath { get; set; }
     public bool IsCustom { get; set; }
     public bool HasUpdate { get; set; }
+    public bool IsPinned { get; set; }
 }

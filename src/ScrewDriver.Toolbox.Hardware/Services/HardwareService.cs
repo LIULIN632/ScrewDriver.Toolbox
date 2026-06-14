@@ -350,6 +350,298 @@ public class HardwareService
         return null;
     }
 
+    public List<HardwareDetailModule> GetAllDetailInfo()
+    {
+        var modules = new List<HardwareDetailModule>
+        {
+            GetCpuDetail(),
+            GetMotherboardDetail(),
+            GetMemoryDetail(),
+            GetGpuDetail(),
+            GetDiskDetail(),
+            GetMonitorDetail(),
+            GetAudioDetail(),
+            GetNetworkDetail()
+        };
+        return modules;
+    }
+
+    private static HardwareDetailModule GetCpuDetail()
+    {
+        var items = new List<HardwareDetailItem>();
+        try
+        {
+            using var searcher = new ManagementObjectSearcher("SELECT Name, Manufacturer, NumberOfCores, NumberOfLogicalProcessors, MaxClockSpeed, L2CacheSize, L3CacheSize, SocketDesignation FROM Win32_Processor");
+            foreach (var obj in searcher.Get())
+            {
+                items.Add(new() { Label = "型号", Value = CleanCpuName(obj["Name"]?.ToString() ?? "未知") });
+                items.Add(new() { Label = "制造商", Value = obj["Manufacturer"]?.ToString() ?? "未知" });
+                items.Add(new() { Label = "物理核心", Value = obj["NumberOfCores"]?.ToString() ?? "-" });
+                items.Add(new() { Label = "逻辑线程", Value = obj["NumberOfLogicalProcessors"]?.ToString() ?? "-" });
+                var freq = obj["MaxClockSpeed"] is uint mhz ? $"{mhz / 1000.0:F1} GHz" : "-";
+                items.Add(new() { Label = "基础频率", Value = freq });
+                items.Add(new() { Label = "插槽", Value = obj["SocketDesignation"]?.ToString() ?? "-" });
+                items.Add(new() { Label = "二级缓存", Value = obj["L2CacheSize"] != null ? $"{obj["L2CacheSize"]} KB" : "-" });
+                items.Add(new() { Label = "三级缓存", Value = obj["L3CacheSize"] != null ? $"{obj["L3CacheSize"]} KB" : "-" });
+            }
+        }
+        catch { items.Add(new() { Label = "状态", Value = "无法检测" }); }
+        return new HardwareDetailModule { ModuleName = "处理器", Icon = "\U0001f9e0", Items = items };
+    }
+
+    private static HardwareDetailModule GetMotherboardDetail()
+    {
+        var items = new List<HardwareDetailItem>();
+        try
+        {
+            using var board = new ManagementObjectSearcher("SELECT Manufacturer, Product, Version, SerialNumber FROM Win32_BaseBoard");
+            foreach (var obj in board.Get())
+            {
+                items.Add(new() { Label = "制造商", Value = obj["Manufacturer"]?.ToString() ?? "未知" });
+                items.Add(new() { Label = "型号", Value = obj["Product"]?.ToString() ?? "未知" });
+                items.Add(new() { Label = "版本", Value = obj["Version"]?.ToString() ?? "-" });
+                items.Add(new() { Label = "序列号", Value = obj["SerialNumber"]?.ToString() ?? "-" });
+            }
+
+            using var bios = new ManagementObjectSearcher("SELECT SMBIOSBIOSVersion, ReleaseDate, Manufacturer FROM Win32_BIOS");
+            foreach (var obj in bios.Get())
+            {
+                items.Add(new() { Label = "BIOS 版本", Value = obj["SMBIOSBIOSVersion"]?.ToString() ?? "-" });
+                items.Add(new() { Label = "BIOS 厂商", Value = obj["Manufacturer"]?.ToString() ?? "-" });
+                if (obj["ReleaseDate"] is string date && date.Length >= 8)
+                    items.Add(new() { Label = "BIOS 日期", Value = $"{date[..4]}-{date[4..6]}-{date[6..8]}" });
+            }
+
+            using var system = new ManagementObjectSearcher("SELECT Manufacturer, Model FROM Win32_ComputerSystem");
+            foreach (var obj in system.Get())
+            {
+                items.Insert(0, new() { Label = "系统机型", Value = $"{obj["Manufacturer"]} {obj["Model"]}" });
+            }
+        }
+        catch { items.Add(new() { Label = "状态", Value = "无法检测" }); }
+        return new HardwareDetailModule { ModuleName = "主板", Icon = "\U0001f50c", Items = items };
+    }
+
+    private static HardwareDetailModule GetMemoryDetail()
+    {
+        var items = new List<HardwareDetailItem>();
+        try
+        {
+            ulong totalCapacity = 0;
+            var slotIndex = 0;
+            using var searcher = new ManagementObjectSearcher("SELECT Capacity, Speed, Manufacturer, FormFactor, MemoryType FROM Win32_PhysicalMemory");
+            foreach (var obj in searcher.Get())
+            {
+                var cap = obj["Capacity"] as ulong? ?? 0;
+                if (cap > 0)
+                {
+                    totalCapacity += cap;
+                    slotIndex++;
+                    var speed = obj["Speed"]?.ToString() ?? "-";
+                    var manufacturer = obj["Manufacturer"]?.ToString() ?? "未知";
+                    items.Add(new() { Label = $"插槽 {slotIndex}", Value = $"{FormatBytes((long)cap)}  {manufacturer}  {speed} MHz" });
+                }
+            }
+
+            if (totalCapacity > 0)
+            {
+                items.Insert(0, new() { Label = "总容量", Value = FormatBytes((long)totalCapacity) });
+                items.Add(new() { Label = "插槽数量", Value = $"{slotIndex} 个" });
+            }
+
+            if (items.Count == 0)
+                items.Add(new() { Label = "状态", Value = "无法检测" });
+        }
+        catch { items.Add(new() { Label = "状态", Value = "无法检测" }); }
+        return new HardwareDetailModule { ModuleName = "内存", Icon = "\U0001f4ca", Items = items };
+    }
+
+    private static HardwareDetailModule GetGpuDetail()
+    {
+        var items = new List<HardwareDetailItem>();
+        try
+        {
+            using var searcher = new ManagementObjectSearcher("SELECT Name, DriverVersion, DriverDate, AdapterRAM, CurrentHorizontalResolution, CurrentVerticalResolution, CurrentRefreshRate, AdapterCompatibility FROM Win32_VideoController");
+            var gpuIndex = 0;
+            foreach (var obj in searcher.Get())
+            {
+                var name = obj["Name"]?.ToString() ?? "";
+                if (string.IsNullOrEmpty(name)) continue;
+                gpuIndex++;
+                var prefix = gpuIndex > 1 ? $"显卡 {gpuIndex}" : "显卡";
+                items.Add(new() { Label = $"{prefix} 型号", Value = name });
+                items.Add(new() { Label = $"{prefix} 厂商", Value = obj["AdapterCompatibility"]?.ToString() ?? "-" });
+                var ramBytes = obj["AdapterRAM"] as ulong? ?? 0;
+                if (ramBytes > 0)
+                    items.Add(new() { Label = $"{prefix} 显存", Value = FormatBytes((long)ramBytes) });
+                items.Add(new() { Label = $"{prefix} 驱动版本", Value = obj["DriverVersion"]?.ToString() ?? "-" });
+                if (obj["DriverDate"] is string date && date.Length >= 8)
+                    items.Add(new() { Label = $"{prefix} 驱动日期", Value = $"{date[..4]}-{date[4..6]}-{date[6..8]}" });
+                var h = obj["CurrentHorizontalResolution"];
+                var v = obj["CurrentVerticalResolution"];
+                var r = obj["CurrentRefreshRate"];
+                if (h != null && v != null)
+                    items.Add(new() { Label = $"{prefix} 分辨率", Value = $"{h}×{v}" });
+                if (r != null)
+                    items.Add(new() { Label = $"{prefix} 刷新率", Value = $"{r} Hz" });
+            }
+            if (gpuIndex == 0)
+                items.Add(new() { Label = "状态", Value = "未检测到" });
+        }
+        catch { items.Add(new() { Label = "状态", Value = "无法检测" }); }
+        return new HardwareDetailModule { ModuleName = "显卡", Icon = "\U0001f3ae", Items = items };
+    }
+
+    private static HardwareDetailModule GetDiskDetail()
+    {
+        var items = new List<HardwareDetailItem>();
+        try
+        {
+            using var searcher = new ManagementObjectSearcher("SELECT Model, Size, InterfaceType, MediaType, SerialNumber FROM Win32_DiskDrive");
+            var diskIndex = 0;
+            foreach (var obj in searcher.Get())
+            {
+                diskIndex++;
+                var model = obj["Model"]?.ToString()?.Trim() ?? "未知";
+                var size = obj["Size"] as ulong? ?? 0;
+                var iface = obj["InterfaceType"]?.ToString() ?? "-";
+                var media = obj["MediaType"]?.ToString() ?? "-";
+                var sn = obj["SerialNumber"]?.ToString()?.Trim() ?? "-";
+
+                items.Add(new() { Label = $"磁盘 {diskIndex} 型号", Value = model });
+                if (size > 0) items.Add(new() { Label = $"磁盘 {diskIndex} 容量", Value = FormatBytes((long)size) });
+                items.Add(new() { Label = $"磁盘 {diskIndex} 接口", Value = iface });
+                items.Add(new() { Label = $"磁盘 {diskIndex} 序列号", Value = sn });
+            }
+
+            // Logical drive free space
+            foreach (var drive in DriveInfo.GetDrives())
+            {
+                if (drive.IsReady && drive.DriveType == DriveType.Fixed)
+                {
+                    var freePct = drive.TotalSize > 0 ? (int)(drive.TotalFreeSpace * 100 / drive.TotalSize) : 0;
+                    items.Add(new() { Label = $"{drive.Name} 可用空间", Value = $"{FormatBytes(drive.TotalFreeSpace)} ({freePct}%)" });
+                }
+            }
+
+            if (diskIndex == 0)
+                items.Add(new() { Label = "状态", Value = "未检测到" });
+        }
+        catch { items.Add(new() { Label = "状态", Value = "无法检测" }); }
+        return new HardwareDetailModule { ModuleName = "硬盘", Icon = "\U0001f4be", Items = items };
+    }
+
+    private static HardwareDetailModule GetMonitorDetail()
+    {
+        var items = new List<HardwareDetailItem>();
+        try
+        {
+            using var searcher = new ManagementObjectSearcher("SELECT Name, ScreenWidth, ScreenHeight, DisplayFrequency FROM Win32_DisplayDevice");
+            var monIndex = 0;
+            foreach (var obj in searcher.Get())
+            {
+                var name = obj["Name"]?.ToString() ?? "";
+                if (string.IsNullOrEmpty(name)) continue;
+                monIndex++;
+                items.Add(new() { Label = $"显示器 {monIndex}", Value = name });
+                var w = obj["ScreenWidth"]?.ToString() ?? "-";
+                var h = obj["ScreenHeight"]?.ToString() ?? "-";
+                items.Add(new() { Label = $"分辨率", Value = $"{w}×{h}" });
+                var freq = obj["DisplayFrequency"]?.ToString() ?? "-";
+                items.Add(new() { Label = $"刷新率", Value = $"{freq} Hz" });
+            }
+            if (monIndex == 0) items.Add(new() { Label = "状态", Value = "未检测到" });
+        }
+        catch { items.Add(new() { Label = "状态", Value = "无法检测" }); }
+        return new HardwareDetailModule { ModuleName = "显示器", Icon = "\U0001f5a5", Items = items };
+    }
+
+    private static HardwareDetailModule GetAudioDetail()
+    {
+        var items = new List<HardwareDetailItem>();
+        try
+        {
+            using var searcher = new ManagementObjectSearcher("SELECT Name, Manufacturer, Status FROM Win32_SoundDevice");
+            var idx = 0;
+            foreach (var obj in searcher.Get())
+            {
+                var name = obj["Name"]?.ToString() ?? "";
+                if (string.IsNullOrEmpty(name)) continue;
+                idx++;
+                items.Add(new() { Label = $"声卡 {idx}", Value = name });
+                items.Add(new() { Label = $"状态", Value = obj["Status"]?.ToString() ?? "正常" });
+            }
+            if (idx == 0) items.Add(new() { Label = "状态", Value = "未检测到" });
+        }
+        catch { items.Add(new() { Label = "状态", Value = "无法检测" }); }
+        return new HardwareDetailModule { ModuleName = "声卡", Icon = "\U0001f50a", Items = items };
+    }
+
+    private static HardwareDetailModule GetNetworkDetail()
+    {
+        var items = new List<HardwareDetailItem>();
+        try
+        {
+            using var searcher = new ManagementObjectSearcher("SELECT Name, MACAddress, Speed, NetEnabled, AdapterType FROM Win32_NetworkAdapter WHERE PhysicalAdapter = True");
+            var idx = 0;
+            foreach (var obj in searcher.Get())
+            {
+                var name = obj["Name"]?.ToString() ?? "";
+                if (string.IsNullOrEmpty(name)) continue;
+                idx++;
+                items.Add(new() { Label = $"网卡 {idx}", Value = name });
+                var mac = obj["MACAddress"]?.ToString() ?? "-";
+                items.Add(new() { Label = $"MAC 地址", Value = mac });
+                var speed = obj["Speed"] as ulong? ?? 0;
+                if (speed > 0)
+                    items.Add(new() { Label = $"速率", Value = speed >= 1_000_000_000 ? $"{speed / 1_000_000_000} Gbps" : $"{speed / 1_000_000} Mbps" });
+                var enabled = obj["NetEnabled"] as bool?;
+                items.Add(new() { Label = $"状态", Value = enabled == true ? "已启用" : "已禁用" });
+            }
+            if (idx == 0)
+            {
+                // Fallback: query all net adapters
+                using var fallback = new ManagementObjectSearcher("SELECT Name, MACAddress FROM Win32_NetworkAdapter WHERE MACAddress IS NOT NULL");
+                foreach (var obj in fallback.Get())
+                {
+                    idx++;
+                    items.Add(new() { Label = $"网卡 {idx}", Value = obj["Name"]?.ToString() ?? "未知" });
+                    items.Add(new() { Label = $"MAC 地址", Value = obj["MACAddress"]?.ToString() ?? "-" });
+                }
+            }
+            if (idx == 0) items.Add(new() { Label = "状态", Value = "未检测到" });
+        }
+        catch { items.Add(new() { Label = "状态", Value = "无法检测" }); }
+        return new HardwareDetailModule { ModuleName = "网卡", Icon = "\U0001f4e1", Items = items };
+    }
+
+    public static string GetSystemUptime()
+    {
+        try
+        {
+            using var searcher = new ManagementObjectSearcher("SELECT LastBootUpTime FROM Win32_OperatingSystem");
+            foreach (var obj in searcher.Get())
+            {
+                if (obj["LastBootUpTime"] is string dmtf && dmtf.Length >= 14)
+                {
+                    var boot = new DateTime(
+                        int.Parse(dmtf[..4]), int.Parse(dmtf[4..6]), int.Parse(dmtf[6..8]),
+                        int.Parse(dmtf[8..10]), int.Parse(dmtf[10..12]), int.Parse(dmtf[12..14]));
+                    var uptime = DateTime.Now - boot;
+                    if (uptime.TotalDays >= 1)
+                        return $"{(int)uptime.TotalDays} 天 {uptime.Hours} 小时 {uptime.Minutes} 分钟";
+                    return $"{uptime.Hours} 小时 {uptime.Minutes} 分钟";
+                }
+            }
+        }
+        catch { }
+        // Fallback: Environment.TickCount
+        var ms = Environment.TickCount64;
+        var days = ms / 86400000;
+        var hours = (ms % 86400000) / 3600000;
+        return $"{days} 天 {hours} 小时";
+    }
+
     private static string CleanCpuName(string raw)
     {
         // Remove (R), (TM), (C), (r), (tm), (c) markers

@@ -8,19 +8,24 @@ param(
 $ErrorActionPreference = "Stop"
 $RootDir = $PSScriptRoot
 $UiProject = "$RootDir\src\ScrewDriver.Toolbox.UI\ScrewDriver.Toolbox.UI.csproj"
-$DistDir = "$RootDir\publish"
+$DistDir = "$RootDir\publish_new"
 $PublishDir = "$RootDir\src\ScrewDriver.Toolbox.UI\bin\$Config\net10.0-windows\$Runtime\publish"
 
 Write-Host "=== ScrewDriver.Toolbox Build v$Version ===" -ForegroundColor Cyan
 Write-Host ""
 
+# 0. Kill old process to avoid file lock
+Write-Host "[0/4] Killing old process..." -ForegroundColor Yellow
+Get-Process -Name "ScrewDriver.Toolbox" -ErrorAction SilentlyContinue | Stop-Process -Force
+Start-Sleep -Seconds 1
+
 # 1. Clean
-Write-Host "[1/3] Cleaning..." -ForegroundColor Yellow
+Write-Host "[1/4] Cleaning..." -ForegroundColor Yellow
 if (Test-Path $DistDir) { Remove-Item -Recurse -Force $DistDir }
 dotnet clean $UiProject -c $Config --verbosity quiet
 
 # 2. Publish
-Write-Host "[2/3] Publishing single-file..." -ForegroundColor Yellow
+Write-Host "[2/4] Publishing single-file..." -ForegroundColor Yellow
 dotnet publish $UiProject -c $Config -r $Runtime `
     --self-contained true `
     -p:PublishSingleFile=true `
@@ -33,7 +38,7 @@ dotnet publish $UiProject -c $Config -r $Runtime `
 if ($LASTEXITCODE -ne 0) { Write-Host "Publish failed!" -ForegroundColor Red; exit 1 }
 
 # 3. Package
-Write-Host "[3/3] Packaging..." -ForegroundColor Yellow
+Write-Host "[3/4] Packaging..." -ForegroundColor Yellow
 New-Item -ItemType Directory -Force -Path $DistDir | Out-Null
 
 # Copy exe

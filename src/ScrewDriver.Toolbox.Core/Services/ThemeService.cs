@@ -30,7 +30,7 @@ public static class ThemeService
         if (saved != null && Enum.TryParse<AppTheme>(saved.Theme, out var parsed))
             _currentTheme = parsed;
         else
-            _currentTheme = AppTheme.System;
+            _currentTheme = AppTheme.Light;
 
         SystemEvents.UserPreferenceChanged += (_, e) =>
         {

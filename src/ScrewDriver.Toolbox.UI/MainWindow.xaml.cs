@@ -1,18 +1,23 @@
 using System.ComponentModel;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Interop;
 using ScrewDriver.Toolbox.Core.Services;
 using ScrewDriver.Toolbox.UI.Services;
 using ScrewDriver.Toolbox.UI.Views;
 using Application = System.Windows.Application;
-using Button = System.Windows.Controls.Button;
 
 namespace ScrewDriver.Toolbox.UI;
 
 public partial class MainWindow : Window
 {
     private TrayIconManager? _trayIconManager;
-    private bool _isExiting;
+
+    [DllImport("dwmapi.dll")]
+    private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
+
+    private const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
 
     public MainWindow()
     {
@@ -20,26 +25,31 @@ public partial class MainWindow : Window
         MainFrame.Navigate(new StartPage());
         NavListBox.SelectedIndex = 0;
 
-        UpdateThemeButton();
-        ThemeService.ThemeChanged += (_, _) =>
-        {
-            Dispatcher.Invoke(UpdateThemeButton);
-        };
-
         SourceInitialized += (_, _) =>
         {
             _trayIconManager = new TrayIconManager(ShowWindow, ExitApplication);
             _trayIconManager.Initialize();
+            ApplyTitleBarTheme();
         };
+
+        ThemeService.ThemeChanged += (_, _) =>
+        {
+            Dispatcher.Invoke(ApplyTitleBarTheme);
+        };
+    }
+
+    private void ApplyTitleBarTheme()
+    {
+        var hwnd = new WindowInteropHelper(this).Handle;
+        if (hwnd == IntPtr.Zero) return;
+        var useDark = ThemeService.IsDarkMode() ? 1 : 0;
+        _ = DwmSetWindowAttribute(hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, ref useDark, sizeof(int));
     }
 
     protected override void OnClosing(CancelEventArgs e)
     {
-        if (!_isExiting)
-        {
-            e.Cancel = true;
-            Hide();
-        }
+        // 直接退出进程，释放文件锁，方便下次打包
+        _trayIconManager?.Dispose();
         base.OnClosing(e);
     }
 
@@ -52,7 +62,6 @@ public partial class MainWindow : Window
 
     private void ExitApplication()
     {
-        _isExiting = true;
         _trayIconManager?.Dispose();
         Application.Current.Shutdown();
     }
@@ -69,6 +78,7 @@ public partial class MainWindow : Window
             "RepairCenterPage" => new RepairCenterPage(),
             "HardwarePage" => new HardwarePage(),
             "ScenariosPage" => new ScenariosPage(),
+            "SettingsPage" => new SettingsPage(),
             _ => null
         };
 
@@ -94,33 +104,10 @@ public partial class MainWindow : Window
             "RepairCenterPage" => new RepairCenterPage(),
             "HardwarePage" => new HardwarePage(),
             "ScenariosPage" => new ScenariosPage(),
+            "SettingsPage" => new SettingsPage(),
             _ => null
         };
 
         if (page != null) MainFrame.Navigate(page);
-    }
-
-    private void ThemeToggleBtn_Click(object sender, RoutedEventArgs e)
-    {
-        var next = ThemeService.CurrentTheme switch
-        {
-            AppTheme.Light => AppTheme.Dark,
-            AppTheme.Dark => AppTheme.System,
-            AppTheme.System => AppTheme.Light,
-            _ => AppTheme.Light
-        };
-        ThemeService.SetTheme(next);
-        UpdateThemeButton();
-    }
-
-    private void UpdateThemeButton()
-    {
-        ThemeToggleBtn.Content = ThemeService.CurrentTheme switch
-        {
-            AppTheme.Light => "☀",
-            AppTheme.Dark => "🌙",
-            AppTheme.System => "🖥",
-            _ => "☀"
-        };
     }
 }

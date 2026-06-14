@@ -10,13 +10,15 @@
     <SolidColorBrush x:Key="SuccessBrush" Color="#22C55E"/>
     <SolidColorBrush x:Key="WarningBrush" Color="#F59E0B"/>
     <SolidColorBrush x:Key="ErrorBrush" Color="#EF4444"/>
-    <SolidColorBrush x:Key="InfoBrush" Color="#2563EB"/>
+    <SolidColorBrush x:Key="InfoBrush" Color="#1D4ED8"/>
 
     <!-- 表面色 -->
     <SolidColorBrush x:Key="BackgroundBrush" Color="#F5F7FA"/>
     <SolidColorBrush x:Key="CardBackgroundBrush" Color="#FFFFFF"/>
     <SolidColorBrush x:Key="NavBackgroundBrush" Color="#FAFBFC"/>
     <SolidColorBrush x:Key="BorderBrush" Color="#E5E7EB"/>
+    <SolidColorBrush x:Key="ToggleTrackBrush" Color="#D1D5DB"/>
+    <SolidColorBrush x:Key="ScrollThumbBrush" Color="#C4C4C4"/>
 
     <!-- 文字色 -->
     <SolidColorBrush x:Key="TextPrimaryBrush" Color="#1E1E1E"/>

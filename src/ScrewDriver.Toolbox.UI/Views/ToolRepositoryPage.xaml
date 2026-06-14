@@ -16,19 +16,57 @@
         <vm:ToolRepositoryViewModel/>
     </Page.DataContext>
     <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="160"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="工具仓库" FontSize="24" FontWeight="Bold"
+        <!-- ========== 顶栏：标题 ========== -->
+        <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="工具仓库" FontSize="24" FontWeight="Bold"
                    Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
 
+        <!-- ========== 左侧：分类导航 ========== -->
+        <Border Grid.Row="1" Grid.Column="0" Background="{DynamicResource CardBackgroundBrush}"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1,1,0,1"
+                CornerRadius="10,0,0,10" Padding="4">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ListBox ItemsSource="{Binding Categories}"
+                         SelectedItem="{Binding SelectedCategory}"
+                         Background="Transparent" BorderThickness="0"
+                         ItemContainerStyle="{StaticResource SideCategoryStyle}">
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel/>
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                </ListBox>
+            </ScrollViewer>
+        </Border>
+
+        <!-- 分隔线 -->
+        <Rectangle Grid.Row="1" Grid.Column="0" Width="1"
+                   Fill="{DynamicResource BorderBrush}"
+                   HorizontalAlignment="Right" Margin="0,0,-1,0"/>
+
+        <!-- ========== 右侧：内容区 ========== -->
+        <Border Grid.Row="1" Grid.Column="1"
+                Background="{DynamicResource CardBackgroundBrush}"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,1,1"
+                CornerRadius="0,10,10,0" Padding="16,12">
+            <Grid>
+                <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
         <!-- 扫描进度 -->
-        <Border Grid.Row="1" Style="{StaticResource CardStyle}" Margin="0,0,0,10"
+        <Border Grid.Row="0" Style="{StaticResource CardStyle}" Margin="0,0,0,10"
                 Padding="10,6" Visibility="{Binding IsScanning, Converter={StaticResource BoolToVis}}">
             <StackPanel Orientation="Horizontal">
                 <ProgressBar Width="16" Height="16" IsIndeterminate="True" Margin="0,0,8,0"/>
@@ -38,7 +76,7 @@
         </Border>
 
         <!-- 推荐工具 Banner -->
-        <StackPanel Grid.Row="2" Margin="0,0,0,16"
+        <StackPanel Grid.Row="1" Margin="0,0,0,16"
                     Visibility="{Binding RecommendedTools.Count, Converter={StaticResource BoolToVis}}">
             <TextBlock Text="推荐工具" FontSize="14" FontWeight="SemiBold"
                        Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10"/>
@@ -73,7 +111,7 @@
         </StackPanel>
 
         <!-- 搜索栏 + 操作按钮 -->
-        <Grid Grid.Row="3" Margin="0,0,0,12">
+        <Grid Grid.Row="2" Margin="0,0,0,12">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
@@ -105,21 +143,9 @@
                        Visibility="{Binding IsCheckingForUpdates, Converter={StaticResource BoolToVis}}"/>
         </Grid>
 
-        <!-- 分类 Tab 栏 -->
-        <ListBox Grid.Row="4" Height="36" Margin="0,0,0,8"
-                 ItemsSource="{Binding Categories}"
-                 SelectedItem="{Binding SelectedCategory}"
-                 ItemContainerStyle="{StaticResource CategoryTabStyle}"
-                 Background="Transparent" BorderThickness="0">
-            <ListBox.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <StackPanel Orientation="Horizontal"/>
-                </ItemsPanelTemplate>
-            </ListBox.ItemsPanel>
-        </ListBox>
 
         <!-- 工具卡片列表 -->
-        <ScrollViewer Grid.Row="4" VerticalScrollBarVisibility="Auto" Margin="0,40,0,0">
+        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
             <ItemsControl ItemsSource="{Binding FilteredTools}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -149,18 +175,18 @@
                                     <Border Margin="6,0,0,0" Padding="5,2" CornerRadius="8"
                                             Background="{DynamicResource WarningBrush}"
                                             Visibility="{Binding HasUpdate, Converter={StaticResource BoolToVis}}">
-                                        <TextBlock Text="更新" FontSize="9" Foreground="White"/>
+                                        <TextBlock Text="更新" FontSize="9" Foreground="#1E1E1E" FontWeight="SemiBold"/>
                                     </Border>
                                     <!-- 已安装标签 -->
                                     <Border Margin="8,0,0,0" Padding="6,2" CornerRadius="4"
                                             Background="{DynamicResource PrimaryLightBrush}"
                                             Visibility="{Binding IsInstalled, Converter={StaticResource BoolToVis}}">
                                         <TextBlock Text="已安装" FontSize="10"
-                                                   Foreground="{DynamicResource PrimaryBrush}"/>
+                                                   Foreground="{DynamicResource InfoBrush}"/>
                                     </Border>
                                     <!-- 未安装标签 -->
                                     <Border Margin="8,0,0,0" Padding="6,2" CornerRadius="4"
-                                            Background="{DynamicResource BackgroundBrush}"
+                                            Background="{DynamicResource BorderBrush}"
                                             Visibility="{Binding IsInstalled, Converter={StaticResource InverseBoolToVis}}">
                                         <TextBlock Text="未安装" FontSize="10"
                                                    Foreground="{DynamicResource TextTertiaryBrush}"/>
@@ -170,7 +196,7 @@
                                 <!-- 分类 + 风险 -->
                                 <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,4,0,0">
                                     <TextBlock Text="{Binding Category}" FontSize="11"
-                                               Foreground="{DynamicResource PrimaryBrush}"
+                                               Foreground="{DynamicResource InfoBrush}"
                                                Background="{DynamicResource PrimaryLightBrush}"
                                                Padding="6,2"/>
                                     <TextBlock FontSize="11" Margin="6,0,0,0" VerticalAlignment="Center"
@@ -261,5 +287,7 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </ScrollViewer>
-    </Grid>
+            </Grid>
+        </Border>
+        </Grid>
 </Page>

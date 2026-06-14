@@ -60,10 +60,10 @@
                                     <ItemsControl ItemsSource="{Binding Steps}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
-                                                <TextBlock FontSize="12" Margin="0,2" IsEnabled="{Binding IsEnabled}">
-                                                    <Run Text="· "/>
-                                                    <Run Text="{Binding Description, Mode=OneWay}"
-                                                         Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                                <TextBlock FontSize="12" Margin="0,2"
+                                                           Foreground="{DynamicResource TextSecondaryBrush}">
+                                                    <Run Text="· " Foreground="{DynamicResource TextTertiaryBrush}"/>
+                                                    <Run Text="{Binding Description, Mode=OneWay}"/>
                                                 </TextBlock>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>

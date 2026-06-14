@@ -18,6 +18,7 @@
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
 
     <!-- 单文件发布 -->
+    <PublishDir>$(MSBuildThisFileDirectory)..\..\publish\</PublishDir>
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
@@ -27,7 +28,7 @@
 
     <!-- 程序集元数据 -->
     <Product>ScrewDriver Toolbox</Product>
-    <Description>Windows 可信工具箱 - 硬件检测、系统优化、工具分发</Description>
+    <Description>Windows 可信工具箱 - 硬件信息、系统优化、工具分发</Description>
     <Company>ScrewDriver</Company>
     <Copyright>© 2026 ScrewDriver</Copyright>
   </PropertyGroup>

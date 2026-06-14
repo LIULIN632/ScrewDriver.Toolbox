@@ -4,6 +4,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using ScrewDriver.Toolbox.Core.Models;
+using ScrewDriver.Toolbox.Core.Services;
+using ScrewDriver.Toolbox.UI.ViewModels;
 using Button = System.Windows.Controls.Button;
 using ContextMenu = System.Windows.Controls.ContextMenu;
 using MenuItem = System.Windows.Controls.MenuItem;
@@ -16,6 +18,14 @@ public partial class StartPage : Page
     public StartPage()
     {
         InitializeComponent();
+    }
+
+    private void PinButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not Button { Tag: string name }) return;
+        if (DataContext is not StartPageViewModel vm) return;
+        vm.TogglePinCommand.Execute(name);
+        e.Handled = true;
     }
 
     private void ToolIcon_Click(object sender, MouseButtonEventArgs e)

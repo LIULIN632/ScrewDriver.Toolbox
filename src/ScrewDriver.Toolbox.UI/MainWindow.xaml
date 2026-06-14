@@ -35,16 +35,13 @@
                     <ListBoxItem Tag="ToolRepositoryPage">工具仓库</ListBoxItem>
                     <ListBoxItem Tag="SystemOptimizerPage">系统优化</ListBoxItem>
                     <ListBoxItem Tag="RepairCenterPage">系统修复</ListBoxItem>
-                    <ListBoxItem Tag="HardwarePage">硬件检测</ListBoxItem>
+                    <ListBoxItem Tag="HardwarePage">硬件信息</ListBoxItem>
                     <ListBoxItem Tag="ScenariosPage">场景方案</ListBoxItem>
+                    <ListBoxItem Tag="SettingsPage">设置</ListBoxItem>
                 </ListBox>
 
-                <!-- 主题切换 -->
-                <Button x:Name="ThemeToggleBtn" Grid.Row="2"
-                        Content="☀" Style="{StaticResource SecondaryButtonStyle}"
-                        Height="36" Width="48" Margin="12,8" Padding="0"
-                        FontSize="16" Click="ThemeToggleBtn_Click"
-                        ToolTip="切换主题 (浅色/深色/跟随系统)"/>
+                <!-- 底部占位 -->
+                <Border Grid.Row="2" Height="8"/>
             </Grid>
         </Border>
 
