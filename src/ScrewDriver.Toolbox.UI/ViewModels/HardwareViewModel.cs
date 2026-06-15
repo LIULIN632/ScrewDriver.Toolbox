@@ -5,7 +5,6 @@ using System.Windows.Threading;
 using ScrewDriver.Toolbox.Core;
 using ScrewDriver.Toolbox.Core.Models;
 using ScrewDriver.Toolbox.Hardware.Services;
-using ScrewDriver.Toolbox.UI.Views;
 using WpfApp = System.Windows.Application;
 
 namespace ScrewDriver.Toolbox.UI.ViewModels;
@@ -122,8 +121,7 @@ public class HardwareViewModel : BaseViewModel
 
     private static void NavigateToDetail()
     {
-        if (WpfApp.Current.MainWindow is MainWindow main)
-            main.MainFrame.Navigate(new HardwareDetailPage());
+        System.Windows.MessageBox.Show("当前页面已展示全部硬件参数。", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
     private static void TakeScreenshot()

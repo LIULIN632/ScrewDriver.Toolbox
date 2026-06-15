@@ -30,7 +30,7 @@
 
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"
                               Background="Transparent" BorderThickness="0">
-                    <StackPanel>
+                    <StackPanel x:Name="NavContainer">
                         <!-- 启动 -->
                         <Border Padding="16,0" Height="48" Cursor="Hand"
                                 Background="Transparent" Tag="StartPage"

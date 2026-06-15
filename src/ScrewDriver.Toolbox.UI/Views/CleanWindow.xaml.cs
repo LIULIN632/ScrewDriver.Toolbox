@@ -82,6 +82,7 @@ public partial class CleanWindow : Window
         BtnScan.IsEnabled = false;
         BtnClean.IsEnabled = false;
         TxtResult.Visibility = Visibility.Collapsed;
+        ShowProgress("正在扫描...");
 
         await Task.Run(() =>
         {
@@ -95,8 +96,8 @@ public partial class CleanWindow : Window
                 {
                     try
                     {
-                        if (Directory.Exists(path)) CalcFolderSize(path, ref totalSize, ref totalCount);
-                        else if (File.Exists(path)) { totalSize += new FileInfo(path).Length; totalCount++; }
+                        if (Directory.Exists(path)) CalcFolderSize(path, ref totalSize, ref totalCount, ChkOldOnly.IsChecked == true);
+                        else if (File.Exists(path)) { var fi = new FileInfo(path); if (IsFileOldEnough(fi, ChkOldOnly.IsChecked == true)) { totalSize += fi.Length; totalCount++; } }
                     }
                     catch { }
                 }
@@ -105,19 +106,28 @@ public partial class CleanWindow : Window
             }
         });
 
+        HideProgress();
         UpdateStatistics();
         BtnScan.IsEnabled = true;
         BtnClean.IsEnabled = true;
     }
 
-    private static void CalcFolderSize(string path, ref long totalSize, ref long totalCount)
+    private static void CalcFolderSize(string path, ref long totalSize, ref long totalCount, bool onlyOldFiles = false)
     {
         try
         {
-            foreach (var file in Directory.GetFiles(path))
-                try { totalSize += new FileInfo(file).Length; totalCount++; } catch { }
+            var files = Directory.GetFiles(path);
+            foreach (var file in files)
+            {
+                try
+                {
+                    var fi = new FileInfo(file);
+                    if (IsFileOldEnough(fi, onlyOldFiles)) { totalSize += fi.Length; totalCount++; }
+                }
+                catch { }
+            }
             foreach (var dir in Directory.GetDirectories(path))
-                CalcFolderSize(dir, ref totalSize, ref totalCount);
+                CalcFolderSize(dir, ref totalSize, ref totalCount, onlyOldFiles);
         }
         catch { }
     }
@@ -147,6 +157,7 @@ public partial class CleanWindow : Window
 
         BtnClean.IsEnabled = false;
         BtnScan.IsEnabled = false;
+        ShowProgress("正在清理...");
 
         long freedSize = 0;
         await Task.Run(() =>
@@ -161,8 +172,8 @@ public partial class CleanWindow : Window
                 {
                     try
                     {
-                        if (Directory.Exists(path)) CleanDir(path, ref cleaned, ref count);
-                        else if (File.Exists(path)) { var fi = new FileInfo(path); cleaned += fi.Length; fi.Delete(); count++; }
+                        if (Directory.Exists(path)) CleanDir(path, ref cleaned, ref count, ChkOldOnly.IsChecked == true);
+                        else if (File.Exists(path)) { var fi = new FileInfo(path); if (IsFileOldEnough(fi, ChkOldOnly.IsChecked == true)) { cleaned += fi.Length; fi.Delete(); count++; } }
                     }
                     catch { }
                 }
@@ -172,6 +183,7 @@ public partial class CleanWindow : Window
             }
         });
 
+        HideProgress();
         UpdateStatistics();
         TxtResult.Text = $"清理完成！释放了 {FormatBytes(freedSize)} 空间";
         TxtResult.Visibility = Visibility.Visible;
@@ -179,19 +191,38 @@ public partial class CleanWindow : Window
         BtnClean.IsEnabled = true;
     }
 
-    private static void CleanDir(string path, ref long freedSize, ref long fileCount)
+    private static void CleanDir(string path, ref long freedSize, ref long fileCount, bool onlyOldFiles = false)
     {
         try
         {
             foreach (var file in Directory.GetFiles(path))
-                try { var fi = new FileInfo(file); freedSize += fi.Length; fi.Delete(); fileCount++; } catch { }
+                try { var fi = new FileInfo(file); if (IsFileOldEnough(fi, onlyOldFiles)) { freedSize += fi.Length; fi.Delete(); fileCount++; } } catch { }
             foreach (var dir in Directory.GetDirectories(path))
             {
-                CleanDir(dir, ref freedSize, ref fileCount);
+                CleanDir(dir, ref freedSize, ref fileCount, onlyOldFiles);
                 try { if (Directory.GetFiles(dir).Length == 0 && Directory.GetDirectories(dir).Length == 0) Directory.Delete(dir); } catch { }
             }
         }
         catch { }
+    }
+
+    private static bool IsFileOldEnough(FileInfo fi, bool onlyOldFiles)
+    {
+        return !onlyOldFiles || fi.LastWriteTime < DateTime.Now.AddDays(-7);
+    }
+
+    private void ShowProgress(string text)
+    {
+        Dispatcher.Invoke(() =>
+        {
+            ProgressPanel.Visibility = Visibility.Visible;
+            TxtProgress.Text = text;
+        });
+    }
+
+    private void HideProgress()
+    {
+        Dispatcher.Invoke(() => ProgressPanel.Visibility = Visibility.Collapsed);
     }
 
     // ==================== WinSxS + 休眠 ====================

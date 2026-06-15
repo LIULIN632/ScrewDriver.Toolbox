@@ -10,6 +10,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -54,7 +55,7 @@
         </Grid>
 
         <!-- 操作按钮 -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,10">
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,6">
             <Button x:Name="BtnScan" Content="扫描" Width="80" Height="32" FontSize="12"
                     Style="{StaticResource PrimaryButtonStyle}"
                     Click="BtnScan_Click" Margin="0,0,8,0"/>
@@ -69,11 +70,24 @@
                     Click="BtnUnselectAll_Click" Margin="0,0,8,0"/>
             <Button Content="关闭休眠" Width="80" Height="32" FontSize="12"
                     Style="{StaticResource SecondaryButtonStyle}"
-                    Click="BtnDisableHibernate_Click"/>
+                    Click="BtnDisableHibernate_Click" Margin="0,0,8,0"/>
+            <CheckBox x:Name="ChkOldOnly" Content="7天前文件" FontSize="12"
+                      Foreground="{DynamicResource TextSecondaryBrush}"
+                      VerticalAlignment="Center"/>
+        </StackPanel>
+
+        <!-- 进度条 -->
+        <StackPanel Grid.Row="3" x:Name="ProgressPanel" Visibility="Collapsed" Margin="0,0,0,6">
+            <ProgressBar Height="4" IsIndeterminate="True"
+                         Foreground="{DynamicResource PrimaryBrush}"
+                         Background="{DynamicResource BorderBrush}"/>
+            <TextBlock x:Name="TxtProgress" FontSize="12"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       Margin="0,4,0,0"/>
         </StackPanel>
 
         <!-- 清理项列表 -->
-        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer Grid.Row="4" VerticalScrollBarVisibility="Auto">
             <ItemsControl x:Name="ItemsClean">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
@@ -124,11 +138,11 @@
         </ScrollViewer>
 
         <!-- 结果提示 -->
-        <TextBlock Grid.Row="4" x:Name="TxtResult" FontSize="13" FontWeight="SemiBold"
+        <TextBlock Grid.Row="5" x:Name="TxtResult" FontSize="13" FontWeight="SemiBold"
                    Foreground="#10B981" Margin="0,10,0,0" Visibility="Collapsed"/>
 
         <!-- 关闭 -->
-        <Button Grid.Row="5" Content="关闭" Height="36" FontSize="13"
+        <Button Grid.Row="6" Content="关闭" Height="36" FontSize="13"
                 Style="{StaticResource SecondaryButtonStyle}"
                 Click="BtnClose_Click" Margin="0,10,0,0"/>
     </Grid>

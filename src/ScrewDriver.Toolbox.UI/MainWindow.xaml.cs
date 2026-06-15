@@ -17,6 +17,7 @@ public partial class MainWindow : Window
 {
     private TrayIconManager? _trayIconManager;
     private bool _categoryExpanded;
+    private string _activeNavTag = "StartPage";
 
     [DllImport("dwmapi.dll")]
     private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
@@ -61,6 +62,9 @@ public partial class MainWindow : Window
             };
             CategoryPanel.Children.Add(border);
         }
+
+        // 默认高亮启动
+        SetActiveNav("StartPage");
     }
 
     private void ApplyTitleBarTheme()
@@ -94,7 +98,13 @@ public partial class MainWindow : Window
     {
         if (sender is Border border && border.Tag is string tag)
         {
+            SetActiveNav(tag);
             NavigateToPageByTag(tag);
+        }
+        else if (sender is Grid grid && grid.Tag is string gridTag)
+        {
+            SetActiveNav(gridTag);
+            NavigateToPageByTag(gridTag);
         }
     }
 
@@ -110,7 +120,59 @@ public partial class MainWindow : Window
     {
         if (sender is Border border && border.DataContext is string category)
         {
+            SetActiveNav("ToolRepositoryPage");
             MainFrame.Navigate(new ToolRepositoryPage(category));
+        }
+    }
+
+    private void SetActiveNav(string tag)
+    {
+        _activeNavTag = tag;
+        var navTags = new[] { "StartPage", "ToolRepositoryPage", "SystemOptimizerPage",
+                              "RepairCenterPage", "HardwarePage", "ScenariosPage", "SettingsPage" };
+
+        // 遍历导航栏所有子元素，清除/设置高亮
+        if (NavContainer is StackPanel panel)
+        {
+            foreach (var child in panel.Children)
+            {
+                string? itemTag = child switch
+                {
+                    Border b => b.Tag as string,
+                    Grid g => g.Tag as string,
+                    _ => null
+                };
+
+                if (itemTag == null || !navTags.Contains(itemTag)) continue;
+
+                bool isActive = itemTag == tag;
+                var bg = isActive
+                    ? FindResource("PrimaryLightBrush") as System.Windows.Media.Brush
+                    : System.Windows.Media.Brushes.Transparent;
+                var borderThickness = isActive ? new Thickness(4, 0, 0, 0) : new Thickness(0);
+
+                switch (child)
+                {
+                    case Border b:
+                        b.Background = bg;
+                        b.BorderBrush = isActive ? FindResource("PrimaryBrush") as System.Windows.Media.Brush : null;
+                        b.BorderThickness = borderThickness;
+                        break;
+                    case Grid g:
+                        g.Background = bg;
+                        // Grid doesn't have BorderBrush/Thickness, apply to inner Border
+                        foreach (var inner in g.Children)
+                        {
+                            if (inner is Border ib)
+                            {
+                                ib.Background = bg;
+                                ib.BorderBrush = isActive ? FindResource("PrimaryBrush") as System.Windows.Media.Brush : null;
+                                ib.BorderThickness = borderThickness;
+                            }
+                        }
+                        break;
+                }
+            }
         }
     }
 
