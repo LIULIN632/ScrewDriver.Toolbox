@@ -106,7 +106,7 @@ public partial class ToolRepositoryPage : Page
             officialItem.Click += (_, _) =>
             {
                 try { Process.Start(new ProcessStartInfo(tool.OfficialUrl) { UseShellExecute = true }); }
-                catch { }
+                catch { /* process error */ }
             };
             menu.Items.Add(officialItem);
         }
@@ -117,7 +117,7 @@ public partial class ToolRepositoryPage : Page
             githubItem.Click += (_, _) =>
             {
                 try { Process.Start(new ProcessStartInfo(tool.GithubUrl) { UseShellExecute = true }); }
-                catch { }
+                catch { /* process error */ }
             };
             menu.Items.Add(githubItem);
         }

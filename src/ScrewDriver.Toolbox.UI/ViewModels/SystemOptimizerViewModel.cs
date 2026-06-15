@@ -19,6 +19,13 @@ public class BloatwareItem : BaseViewModel
         get => _isSelected;
         set => SetProperty(ref _isSelected, value);
     }
+
+    private bool _isInstalled = true;
+    public bool IsInstalled
+    {
+        get => _isInstalled;
+        set => SetProperty(ref _isInstalled, value);
+    }
 }
 
 public class SystemOptimizerViewModel : BaseViewModel
@@ -26,6 +33,7 @@ public class SystemOptimizerViewModel : BaseViewModel
     private readonly ISystemOptimizerService _service = new SystemOptimizerService();
     private readonly JsonConfigManager _config = new(AppDomain.CurrentDomain.BaseDirectory);
     private bool _isUninstalling;
+    private bool _isScanningBloatware;
     private string _uninstallStatus = string.Empty;
 
     private class PersistedSettings { public List<string> EnabledIds { get; set; } = new(); }
@@ -39,6 +47,12 @@ public class SystemOptimizerViewModel : BaseViewModel
         set => SetProperty(ref _isUninstalling, value);
     }
 
+    public bool IsScanningBloatware
+    {
+        get => _isScanningBloatware;
+        set => SetProperty(ref _isScanningBloatware, value);
+    }
+
     public string UninstallStatus
     {
         get => _uninstallStatus;
@@ -48,6 +62,7 @@ public class SystemOptimizerViewModel : BaseViewModel
     public RelayCommand UninstallSelectedBloatwareCommand { get; }
     public RelayCommand SelectAllBloatwareCommand { get; }
     public RelayCommand DeselectAllBloatwareCommand { get; }
+    public RelayCommand ScanBloatwareCommand { get; }
     public RelayCommand RevertGroupCommand { get; }
 
     public SystemOptimizerViewModel()
@@ -55,6 +70,7 @@ public class SystemOptimizerViewModel : BaseViewModel
         UninstallSelectedBloatwareCommand = new RelayCommand(async _ => await UninstallSelectedBloatwareAsync());
         SelectAllBloatwareCommand = new RelayCommand(_ => SetAllBloatware(true));
         DeselectAllBloatwareCommand = new RelayCommand(_ => SetAllBloatware(false));
+        ScanBloatwareCommand = new RelayCommand(async _ => await ScanBloatwareAsync());
         RevertGroupCommand = new RelayCommand(param => RevertGroup(param as string ?? ""));
         LoadSettings();
     }
@@ -168,6 +184,25 @@ public class SystemOptimizerViewModel : BaseViewModel
     {
         foreach (var item in BloatwareList)
             item.IsSelected = selected;
+    }
+
+    private async Task ScanBloatwareAsync()
+    {
+        IsScanningBloatware = true;
+        UninstallStatus = "正在检测已安装的预装应用...";
+
+        var installed = await Task.Run(() => _service.CheckInstalledBloatwareAsync(
+            BloatwareList.Select(b => b.PackageName).ToArray()));
+
+        foreach (var item in BloatwareList)
+        {
+            item.IsInstalled = installed.Contains(item.PackageName);
+            item.IsSelected = item.IsInstalled; // 默认勾选已安装的
+        }
+
+        var installedCount = BloatwareList.Count(b => b.IsInstalled);
+        UninstallStatus = $"检测完成：已安装 {installedCount}/{BloatwareList.Count} 项";
+        IsScanningBloatware = false;
     }
 
     private async Task UninstallSelectedBloatwareAsync()

@@ -8,5 +8,6 @@ public interface ISystemOptimizerService
     bool ApplySetting(string id, bool enable);
     bool RevertSetting(string id);
     Task UninstallBloatwareAsync(IProgress<(string status, int progress)>? progress = null, string[]? selectedPackages = null);
+    Task<List<string>> CheckInstalledBloatwareAsync(string[] packageNames);
     string? GetCurrentPowerPlan();
 }

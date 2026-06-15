@@ -340,24 +340,62 @@ public class SystemOptimizerService : ISystemOptimizerService
         var packages = selectedPackages ?? BloatwarePackages.Select(p => p.Name).ToArray();
 
         var total = packages.Length;
+        var successCount = 0;
+        var failCount = 0;
+
         for (var i = 0; i < total; i++)
         {
             var pkg = packages[i];
             try
             {
+                // 1. Remove current user package
                 RunPowerShell($"Get-AppxPackage *{pkg}* | Remove-AppxPackage", false);
+
+                // 2. Remove provisioned package (prevents auto-install for new users)
+                RunPowerShell($"Get-AppxProvisionedPackage -Online | Where-Object {{ /usr/bin/bash.DisplayName -like '*{pkg}*' }} | Remove-AppxProvisionedPackage -Online", false);
+
+                successCount++;
             }
             catch
             {
-                // Continue even if individual package removal fails
+                failCount++;
             }
 
             progress?.Report(($"正在卸载 {pkg} ({i + 1}/{total})", (i + 1) * 100 / total));
             await Task.Delay(80);
         }
 
-        progress?.Report(("预装应用卸载完成", 100));
+        progress?.Report(($"卸载完成：成功 {successCount}，失败 {failCount}", 100));
     }
+    public async Task<List<string>> CheckInstalledBloatwareAsync(string[] packageNames)
+    {
+        var installed = new List<string>();
+        foreach (var pkg in packageNames)
+        {
+            try
+            {
+                var ps = new Process
+                {
+                    StartInfo = new ProcessStartInfo
+                    {
+                        FileName = "powershell.exe",
+                        Arguments = $"-NoProfile -Command \"Get-AppxPackage *{pkg}* | Select-Object -ExpandProperty Name\"",
+                        RedirectStandardOutput = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    }
+                };
+                ps.Start();
+                var output = await ps.StandardOutput.ReadToEndAsync();
+                ps.WaitForExit();
+                if (!string.IsNullOrWhiteSpace(output))
+                    installed.Add(pkg);
+            }
+            catch { }
+        }
+        return installed;
+    }
+
 
     public string? GetCurrentPowerPlan()
     {

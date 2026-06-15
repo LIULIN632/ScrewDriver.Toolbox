@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using ScrewDriver.Toolbox.Core;
 
 namespace ScrewDriver.Toolbox.Core.Models;
 
@@ -41,14 +42,7 @@ public class CleanItem : INotifyPropertyChanged
     public string SizeText => SizeBytes == 0 ? "无文件" : FormatBytes(SizeBytes);
     public string CountText => FileCount == 0 ? "-" : $"{FileCount} 个文件";
 
-    private static string FormatBytes(long bytes)
-    {
-        string[] units = { "B", "KB", "MB", "GB", "TB" };
-        double size = bytes;
-        int unitIndex = 0;
-        while (size >= 1024 && unitIndex < units.Length - 1) { size /= 1024; unitIndex++; }
-        return $"{size:0.##} {units[unitIndex]}";
-    }
+    private static string FormatBytes(long bytes) => FileSizeFormatter.FormatBytes(bytes);
 
     public event PropertyChangedEventHandler? PropertyChanged;
     protected void OnPropertyChanged([CallerMemberName] string? name = null)

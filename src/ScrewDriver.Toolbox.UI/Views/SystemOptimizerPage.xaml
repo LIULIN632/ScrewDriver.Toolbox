@@ -193,8 +193,12 @@
                                    TextWrapping="Wrap" Margin="0,0,0,10"/>
 
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <Button Content="检测" Width="56" Height="26" FontSize="11"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Command="{Binding ScanBloatwareCommand}"/>
                             <Button Content="全选" Width="56" Height="26" FontSize="11"
                                     Style="{StaticResource SecondaryButtonStyle}"
+                                    Margin="8,0,0,0"
                                     Command="{Binding SelectAllBloatwareCommand}"/>
                             <Button Content="取消全选" Width="68" Height="26" FontSize="11"
                                     Style="{StaticResource SecondaryButtonStyle}" Margin="8,0,0,0"
@@ -213,10 +217,20 @@
                             </ItemsControl.ItemsPanel>
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <CheckBox Content="{Binding DisplayName}"
-                                              IsChecked="{Binding IsSelected}"
-                                              FontSize="12" Margin="0,3"
-                                              Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,2">
+                                        <CheckBox IsChecked="{Binding IsSelected}"
+                                                  IsEnabled="{Binding IsInstalled}"
+                                                  FontSize="12"
+                                                  Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                        <TextBlock Text="{Binding DisplayName}" FontSize="12"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   VerticalAlignment="Center" Margin="4,0,0,0"/>
+                                        <TextBlock Text="(未安装)" FontSize="10"
+                                                   Foreground="{DynamicResource TextTertiaryBrush}"
+                                                   VerticalAlignment="Center" Margin="4,0,0,0"
+                                                   Visibility="{Binding IsInstalled, Converter={StaticResource InverseBoolToVis}}"/>
+                                    </StackPanel>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
@@ -241,9 +255,12 @@
                                 </Button.Style>
                             </Button>
 
-                            <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center"
-                                        Visibility="{Binding IsUninstalling, Converter={StaticResource BoolToVis}}">
-                                <ProgressBar Height="6" IsIndeterminate="True" Margin="0,0,0,4"/>
+                            <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                                <ProgressBar Height="6" IsIndeterminate="True" Margin="0,0,0,4"
+                                             Visibility="{Binding IsUninstalling, Converter={StaticResource BoolToVis}}"/>
+                                <ProgressBar Height="6" IsIndeterminate="True" Margin="0,0,0,4"
+                                             Foreground="#8B5CF6"
+                                             Visibility="{Binding IsScanningBloatware, Converter={StaticResource BoolToVis}}"/>
                                 <TextBlock Text="{Binding UninstallStatus}" FontSize="12"
                                            Foreground="{DynamicResource TextSecondaryBrush}"
                                            TextTrimming="CharacterEllipsis"/>

@@ -17,6 +17,7 @@ public partial class MainWindow : Window
     private TrayIconManager? _trayIconManager;
     private bool _categoryExpanded;
     private string _activeNavTag = "StartPage";
+    private string? _activeCategory;
 
     [DllImport("dwmapi.dll")]
     private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
@@ -113,6 +114,21 @@ public partial class MainWindow : Window
         CategoryPanel.Visibility = _categoryExpanded ? Visibility.Visible : Visibility.Collapsed;
         ExpandIcon.Text = _categoryExpanded ? "▼" : "▶";
         SetActiveNav("ToolRepositoryPage");
+
+        // 展开时恢复之前选中的分类高亮
+        if (_categoryExpanded && _activeCategory != null)
+        {
+            foreach (var child in CategoryPanel.Children)
+            {
+                if (child is Border cb && cb.DataContext is string cat && cat == _activeCategory)
+                {
+                    cb.Background = FindResource("PrimaryLightBrush") as System.Windows.Media.Brush;
+                    if (cb.Child is TextBlock tb)
+                        tb.Foreground = FindResource("PrimaryBrush") as System.Windows.Media.Brush;
+                }
+            }
+        }
+
         e.Handled = true;
     }
 
@@ -120,6 +136,22 @@ public partial class MainWindow : Window
     {
         if (sender is Border border && border.DataContext is string category)
         {
+            // 清除之前分类的高亮
+            foreach (var child in CategoryPanel.Children)
+            {
+                if (child is Border cb)
+                {
+                    cb.Background = System.Windows.Media.Brushes.Transparent;
+                    if (cb.Child is TextBlock ct)
+                        ct.Foreground = FindResource("TextSecondaryBrush") as System.Windows.Media.Brush;
+                }
+            }
+            // 高亮当前分类
+            _activeCategory = category;
+            border.Background = FindResource("PrimaryLightBrush") as System.Windows.Media.Brush;
+            if (border.Child is TextBlock tb)
+                tb.Foreground = FindResource("PrimaryBrush") as System.Windows.Media.Brush;
+
             SetActiveNav("ToolRepositoryPage");
             MainFrame.Navigate(new ToolRepositoryPage(category));
         }

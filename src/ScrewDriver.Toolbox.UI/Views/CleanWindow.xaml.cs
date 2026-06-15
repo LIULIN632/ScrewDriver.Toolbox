@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
+using ScrewDriver.Toolbox.Core;
 using ScrewDriver.Toolbox.Core.Models;
 using WpfApp = System.Windows.Application;
 using WpfMessageBox = System.Windows.MessageBox;
@@ -124,7 +125,7 @@ public partial class CleanWindow : Window
                     var fi = new FileInfo(file);
                     if (IsFileOldEnough(fi, onlyOldFiles)) { totalSize += fi.Length; totalCount++; }
                 }
-                catch { }
+                catch { /* skip locked file */ }
             }
             foreach (var dir in Directory.GetDirectories(path))
                 CalcFolderSize(dir, ref totalSize, ref totalCount, onlyOldFiles);
@@ -196,11 +197,11 @@ public partial class CleanWindow : Window
         try
         {
             foreach (var file in Directory.GetFiles(path))
-                try { var fi = new FileInfo(file); if (IsFileOldEnough(fi, onlyOldFiles)) { freedSize += fi.Length; fi.Delete(); fileCount++; } } catch { }
+                try { var fi = new FileInfo(file); if (IsFileOldEnough(fi, onlyOldFiles)) { freedSize += fi.Length; fi.Delete(); fileCount++; } } catch { /* skip */ }
             foreach (var dir in Directory.GetDirectories(path))
             {
                 CleanDir(dir, ref freedSize, ref fileCount, onlyOldFiles);
-                try { if (Directory.GetFiles(dir).Length == 0 && Directory.GetDirectories(dir).Length == 0) Directory.Delete(dir); } catch { }
+                try { if (Directory.GetFiles(dir).Length == 0 && Directory.GetDirectories(dir).Length == 0) Directory.Delete(dir); } catch { /* skip locked file */ }
             }
         }
         catch { }
@@ -316,13 +317,7 @@ public partial class CleanWindow : Window
         TxtTotalCount.Text = _cleanItems.Sum(x => x.FileCount).ToString();
     }
 
-    private static string FormatBytes(long bytes)
-    {
-        string[] u = { "B", "KB", "MB", "GB", "TB" };
-        double s = bytes; int i = 0;
-        while (s >= 1024 && i < u.Length - 1) { s /= 1024; i++; }
-        return $"{s:0.##} {u[i]}";
-    }
+    private static string FormatBytes(long bytes) => FileSizeFormatter.FormatBytes(bytes);
 
     private void BtnSelectAll_Click(object sender, RoutedEventArgs e)
     {

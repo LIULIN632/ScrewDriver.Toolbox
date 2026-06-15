@@ -27,7 +27,7 @@ public class HardwareViewModel : BaseViewModel
     public string SystemModelDetail { get; private set; } = "";
     public string OsVersion { get; private set; } = "";
     public string OsVersionDetail { get; private set; } = "";
-    public string Uptime { get; private set; } = "检测中...";
+    public string Uptime { get; private set; } = "";
     public string RefreshTime { get; private set; } = "";
 
     public bool IsLoading
@@ -125,7 +125,7 @@ public class HardwareViewModel : BaseViewModel
                         int.Parse(dmtf[8..10]), int.Parse(dmtf[10..12]), int.Parse(dmtf[12..14]));
             }
         }
-        catch { }
+        catch { System.Diagnostics.Debug.WriteLine("Hardware load error"); }
         return DateTime.MinValue;
     }
 
@@ -140,6 +140,6 @@ public class HardwareViewModel : BaseViewModel
         {
             System.Windows.Clipboard.SetText("截图功能待实现");
         }
-        catch { }
+        catch { System.Diagnostics.Debug.WriteLine("Hardware load error"); }
     }
 }

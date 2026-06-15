@@ -45,7 +45,7 @@ public class TrayIconManager : IDisposable
             if (File.Exists(exePath))
                 return Icon.ExtractAssociatedIcon(exePath);
         }
-        catch { }
+        catch { System.Diagnostics.Debug.WriteLine("TrayIcon error"); }
         return null;
     }
 

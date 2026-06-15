@@ -12,7 +12,7 @@ public static class ToolRegistry
     {
         "系统工具", "CPU工具", "主板工具", "内存工具",
         "显卡工具", "硬盘工具", "屏幕工具", "外设工具",
-        "网络工具", "安全工具", "品牌工具", "启动与镜像", "其他工具"
+        "安全工具", "品牌工具", "启动与镜像", "其他工具"
     };
 
     public static List<ToolItem> GetAllTools()
@@ -97,27 +97,15 @@ public static class ToolRegistry
             Description = "磁盘分区管理、数据恢复、备份克隆，国产专业磁盘工具",
             OfficialUrl = "https://www.diskgenius.cn/",
             WingetId = "", RiskLevel = "注意" },
-        new() { Name = "资源监视器", Category = "系统工具",
-            Description = "查看 CPU/内存/磁盘/网络 的详细使用情况，定位资源占用进程",
-            LaunchPath = "resmon.exe", RiskLevel = "安全" },
-        new() { Name = "垃圾清理", Category = "系统工具",
-            Description = "打开 Windows 磁盘清理，扫描并清除临时文件、系统缓存和更新备份",
-            LaunchPath = "cleanmgr.exe", RiskLevel = "安全" },
+        
+        
         new() { Name = "右键菜单管理", Category = "系统工具",
             Description = "管理 Windows 右键菜单和 Shell 扩展，禁用卡顿来源的第三方扩展",
             LaunchPath = "ms-settings:installed-apps", RiskLevel = "注意" },
-        new() { Name = "配置修改器", Category = "系统工具",
-            Description = "打开系统配置实用工具，管理启动项/服务/引导/工具的高级启动选项",
-            LaunchPath = "msconfig.exe", RiskLevel = "注意" },
-        new() { Name = "软件安装(winget)", Category = "系统工具",
-            Description = "Windows 包管理器命令行工具，一键搜索/安装/升级软件包",
-            LaunchPath = "cmd.exe /k winget", RiskLevel = "安全" },
-        new() { Name = "CPU 天梯榜", Category = "CPU工具",
-            Description = "查看桌面/笔记本 CPU 性能天梯图，对比处理器性能排名和规格参数",
-            OfficialUrl = "https://www.cpubenchmark.net/", RiskLevel = "安全" },
-        new() { Name = "CPU 天梯图", Category = "显卡工具",
-            Description = "查看桌面/笔记本 GPU 性能天梯图，对比显卡游戏性能和跑分排名",
-            OfficialUrl = "https://www.videocardbenchmark.net/", RiskLevel = "安全" },
+        
+        
+        
+        
         new() { Name = "Win11 轻松设置", Category = "系统工具",
             Description = "Windows 11 系统设置优化工具，一键关闭广告/禁用Defender/调整隐私/恢复经典菜单等",
             OfficialUrl = "https://www.bilibili.com/read/cv24956327/", RiskLevel = "注意" }
@@ -167,20 +155,20 @@ public static class ToolRegistry
     // ============================================================
     private static void AddNetworkTools() => _allTools!.AddRange(new List<ToolItem>
     {
-        new() { Name = "网速测试", Category = "网络工具",
+        new() { Name = "网速测试", Category = "其他工具",
             Description = "全球最流行的网络测速工具，测试下载/上传带宽和延迟",
             OfficialUrl = "https://www.speedtest.net/",
             WingetId = "Ookla.Speedtest.Desktop", RiskLevel = "安全" },
-        new() { Name = "网络连接", Category = "网络工具",
+        new() { Name = "网络连接", Category = "其他工具",
             Description = "管理网络适配器和连接设置，快速查看 IP/DNS/适配器状态",
             LaunchPath = "ncpa.cpl", RiskLevel = "安全" },
-        new() { Name = "端口占用", Category = "网络工具",
+        new() { Name = "端口占用", Category = "其他工具",
             Description = "查看本机端口占用情况，定位占用进程，排查端口冲突问题",
             LaunchPath = "resmon.exe", RiskLevel = "安全" },
-        new() { Name = "Hosts 编辑", Category = "网络工具",
+        new() { Name = "Hosts 编辑", Category = "其他工具",
             Description = "以管理员权限打开 hosts 文件，自定义域名到 IP 的本地解析映射",
             LaunchPath = @"notepad C:\Windows\System32\drivers\etc\hosts", RiskLevel = "注意" },
-        new() { Name = "WiFi 密码", Category = "网络工具",
+        new() { Name = "WiFi 密码", Category = "其他工具",
             Description = "查看当前连接 WiFi 的密码，显示已保存的所有无线网络配置文件",
             LaunchPath = "cmd.exe /k netsh wlan show profiles", RiskLevel = "安全" }
     });

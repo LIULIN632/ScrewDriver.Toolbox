@@ -1,5 +1,6 @@
 using System.Management;
 using System.Runtime.Versioning;
+using ScrewDriver.Toolbox.Core;
 using ScrewDriver.Toolbox.Core.Models;
 
 namespace ScrewDriver.Toolbox.Hardware.Services;
@@ -18,7 +19,7 @@ public class HardwareService
                     return (float)Math.Round(bytes / (1024.0 * 1024 * 1024), 1);
             }
         }
-        catch { }
+        catch (System.Exception ex) { System.Diagnostics.Debug.WriteLine($"WMI: {ex.Message}"); }
         return 0;
     }
 
@@ -66,7 +67,7 @@ public class HardwareService
                 };
             }
         }
-        catch { }
+        catch (System.Exception ex) { System.Diagnostics.Debug.WriteLine($"WMI: {ex.Message}"); }
 
         return new HardwareComponent { Name = "CPU", Icon = "\U0001f9e0", PrimaryInfo = "无法检测", HealthStatus = "未知" };
     }
@@ -118,7 +119,7 @@ public class HardwareService
                     : ""
             };
         }
-        catch { }
+        catch (System.Exception ex) { System.Diagnostics.Debug.WriteLine($"WMI: {ex.Message}"); }
 
         return new HardwareComponent { Name = "GPU", Icon = "\U0001f3ae", PrimaryInfo = "无法检测", HealthStatus = "未知" };
     }
@@ -203,7 +204,7 @@ public class HardwareService
                 TipText = tip
             };
         }
-        catch { }
+        catch (System.Exception ex) { System.Diagnostics.Debug.WriteLine($"WMI: {ex.Message}"); }
 
         return new HardwareComponent { Name = "内存", Icon = "\U0001f4ca", PrimaryInfo = "无法检测", HealthStatus = "未知" };
     }
@@ -289,7 +290,7 @@ public class HardwareService
                 TipText = tip
             };
         }
-        catch { }
+        catch (System.Exception ex) { System.Diagnostics.Debug.WriteLine($"WMI: {ex.Message}"); }
 
         return new HardwareComponent { Name = "磁盘", Icon = "\U0001f4be", PrimaryInfo = "无法检测", HealthStatus = "未知" };
     }
@@ -345,7 +346,7 @@ public class HardwareService
                 };
             }
         }
-        catch { }
+        catch (System.Exception ex) { System.Diagnostics.Debug.WriteLine($"WMI: {ex.Message}"); }
 
         return null;
     }
@@ -634,7 +635,7 @@ public class HardwareService
                 }
             }
         }
-        catch { }
+        catch (System.Exception ex) { System.Diagnostics.Debug.WriteLine($"WMI: {ex.Message}"); }
         // Fallback: Environment.TickCount
         var ms = Environment.TickCount64;
         var days = ms / 86400000;
@@ -657,11 +658,5 @@ public class HardwareService
     private static string Truncate(string text, int maxLen)
         => text.Length <= maxLen ? text : text[..(maxLen - 3)] + "...";
 
-    private static string FormatBytes(long bytes) => bytes switch
-    {
-        >= 1_099_511_627_776 => $"{bytes / 1_099_511_627_776.0:F1} TB",
-        >= 1_073_741_824 => $"{bytes / 1_073_741_824.0:F0} GB",
-        >= 1_048_576 => $"{bytes / 1_048_576.0:F0} MB",
-        _ => $"{bytes / 1024.0:F0} KB"
-    };
+    private static string FormatBytes(long bytes) => FileSizeFormatter.FormatBytes(bytes);
 }
