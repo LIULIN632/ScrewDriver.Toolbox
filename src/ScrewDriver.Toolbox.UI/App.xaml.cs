@@ -18,9 +18,6 @@ public partial class App : System.Windows.Application
             Dispatcher.Invoke(ApplyCurrentTheme);
         };
 
-        // Start background scan for installed tools
-        _ = InstalledToolsCache.Instance.InitializeAsync();
-
         var window = new MainWindow();
         window.Show();
     }

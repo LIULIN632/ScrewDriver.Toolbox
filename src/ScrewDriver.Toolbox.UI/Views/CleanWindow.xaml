@@ -68,6 +68,9 @@
             <Button Content="取消全选" Width="80" Height="32" FontSize="12"
                     Style="{StaticResource SecondaryButtonStyle}"
                     Click="BtnUnselectAll_Click" Margin="0,0,8,0"/>
+            <Button x:Name="BtnCancel" Content="取消" Width="60" Height="32" FontSize="12"
+                    Style="{StaticResource DangerButtonStyle}"
+                    IsEnabled="False" Click="BtnCancel_Click" Margin="0,0,8,0"/>
             <Button Content="关闭休眠" Width="80" Height="32" FontSize="12"
                     Style="{StaticResource SecondaryButtonStyle}"
                     Click="BtnDisableHibernate_Click" Margin="0,0,8,0"/>

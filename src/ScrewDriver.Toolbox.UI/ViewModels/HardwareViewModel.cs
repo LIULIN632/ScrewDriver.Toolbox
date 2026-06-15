@@ -56,6 +56,7 @@ public class HardwareViewModel : BaseViewModel
 
     private async void Refresh()
     {
+        HardwareService.ClearCache();
         HardwareItems.Clear();
         await LoadDataAsync();
     }

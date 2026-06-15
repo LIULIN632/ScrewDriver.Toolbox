@@ -8,6 +8,21 @@ namespace ScrewDriver.Toolbox.Hardware.Services;
 [SupportedOSPlatform("windows")]
 public class HardwareService
 {
+    // WMI 查询缓存（30秒）
+    private static List<HardwareComponent>? _cachedComponents;
+    private static List<HardwareDetailModule>? _cachedDetails;
+    private static DateTime _cacheTime;
+    private static readonly TimeSpan CacheDuration = TimeSpan.FromSeconds(30);
+
+    private static bool IsCacheValid() => _cacheTime != default && DateTime.Now - _cacheTime < CacheDuration;
+    private static void SetCache(List<HardwareComponent>? comps = null, List<HardwareDetailModule>? details = null)
+    {
+        _cachedComponents = comps;
+        _cachedDetails = details;
+        _cacheTime = DateTime.Now;
+    }
+
+    public static void ClearCache() => _cacheTime = default;
     public static float GetTotalMemoryGB()
     {
         try
@@ -25,6 +40,9 @@ public class HardwareService
 
     public List<HardwareComponent> GetAllHardwareInfo()
     {
+        if (IsCacheValid() && _cachedComponents != null)
+            return new List<HardwareComponent>(_cachedComponents);
+
         var components = new List<HardwareComponent>
         {
             GetCpuInfo(),
@@ -36,6 +54,7 @@ public class HardwareService
         var battery = GetBatteryInfo();
         if (battery != null) components.Add(battery);
 
+        SetCache(comps: components);
         return components;
     }
 
@@ -353,6 +372,9 @@ public class HardwareService
 
     public List<HardwareDetailModule> GetAllDetailInfo()
     {
+        if (IsCacheValid() && _cachedDetails != null)
+            return new List<HardwareDetailModule>(_cachedDetails);
+
         var modules = new List<HardwareDetailModule>
         {
             GetCpuDetail(),
@@ -364,6 +386,8 @@ public class HardwareService
             GetAudioDetail(),
             GetNetworkDetail()
         };
+
+        SetCache(details: modules);
         return modules;
     }
 

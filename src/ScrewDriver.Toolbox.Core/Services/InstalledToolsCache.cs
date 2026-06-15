@@ -14,7 +14,15 @@ public class InstalledToolsCache
     private HashSet<string> _pinnedNames = new();
     public List<ToolItem> InstalledTools
     {
-        get { lock (_lock) return new List<ToolItem>(_installedTools); }
+        get
+        {
+            lock (_lock)
+            {
+                if (!IsInitialized)
+                    _ = InitializeAsync();
+                return new List<ToolItem>(_installedTools);
+            }
+        }
     }
 
     public event Action? CacheUpdated;

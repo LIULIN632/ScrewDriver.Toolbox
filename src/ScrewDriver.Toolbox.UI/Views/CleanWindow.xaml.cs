@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using ScrewDriver.Toolbox.Core;
@@ -16,6 +17,7 @@ namespace ScrewDriver.Toolbox.UI.Views;
 public partial class CleanWindow : Window
 {
     private readonly List<CleanItem> _cleanItems = new();
+    private CancellationTokenSource? _cts;
 
     public CleanWindow()
     {
@@ -83,29 +85,40 @@ public partial class CleanWindow : Window
         BtnScan.IsEnabled = false;
         BtnClean.IsEnabled = false;
         TxtResult.Visibility = Visibility.Collapsed;
+        _cts = new CancellationTokenSource();
+        var token = _cts.Token;
+        BtnCancel.IsEnabled = true;
         ShowProgress("正在扫描...");
 
-        await Task.Run(() =>
+        try
         {
-            foreach (var item in _cleanItems)
+            await Task.Run(() =>
             {
-                if (item.SpecialType == "WinSxS") { item.SizeBytes = 0; item.FileCount = 0; continue; }
-                if (item.IsRecycler) { var info = GetRecycleBinInfo(); item.SizeBytes = info.Size; item.FileCount = info.Count; continue; }
-
-                long totalSize = 0, totalCount = 0;
-                foreach (var path in item.ScanPaths)
+                foreach (var item in _cleanItems)
                 {
-                    try
+                    token.ThrowIfCancellationRequested();
+                    if (item.SpecialType == "WinSxS") { item.SizeBytes = 0; item.FileCount = 0; continue; }
+                    if (item.IsRecycler) { var info = GetRecycleBinInfo(); item.SizeBytes = info.Size; item.FileCount = info.Count; continue; }
+
+                    long totalSize = 0, totalCount = 0;
+                    foreach (var path in item.ScanPaths)
                     {
-                        if (Directory.Exists(path)) CalcFolderSize(path, ref totalSize, ref totalCount, ChkOldOnly.IsChecked == true);
-                        else if (File.Exists(path)) { var fi = new FileInfo(path); if (IsFileOldEnough(fi, ChkOldOnly.IsChecked == true)) { totalSize += fi.Length; totalCount++; } }
+                        try
+                        {
+                            if (Directory.Exists(path)) CalcFolderSize(path, ref totalSize, ref totalCount, ChkOldOnly.IsChecked == true);
+                            else if (File.Exists(path)) { var fi = new FileInfo(path); if (IsFileOldEnough(fi, ChkOldOnly.IsChecked == true)) { totalSize += fi.Length; totalCount++; } }
+                        }
+                        catch { }
                     }
-                    catch { }
+                    item.SizeBytes = totalSize;
+                    item.FileCount = (int)totalCount;
                 }
-                item.SizeBytes = totalSize;
-                item.FileCount = (int)totalCount;
-            }
-        });
+            });
+        }
+        catch (OperationCanceledException)
+        {
+            TxtProgress.Text = "已取消";
+        }
 
         HideProgress();
         UpdateStatistics();
@@ -158,13 +171,19 @@ public partial class CleanWindow : Window
 
         BtnClean.IsEnabled = false;
         BtnScan.IsEnabled = false;
+        _cts = new CancellationTokenSource();
+        var cleanToken = _cts.Token;
+        BtnCancel.IsEnabled = true;
         ShowProgress("正在清理...");
 
         long freedSize = 0;
-        await Task.Run(() =>
+        try
         {
-            foreach (var item in selected)
+            await Task.Run(() =>
             {
+                foreach (var item in selected)
+                {
+                    cleanToken.ThrowIfCancellationRequested();
                 if (item.SpecialType == "WinSxS") { CleanWinSxS(); continue; }
                 if (item.IsRecycler) { EmptyRecycleBin(); freedSize += item.SizeBytes; item.SizeBytes = 0; item.FileCount = 0; continue; }
 
@@ -184,7 +203,14 @@ public partial class CleanWindow : Window
             }
         });
 
+        }
+        catch (OperationCanceledException)
+        {
+            TxtResult.Text = "已取消";
+            TxtResult.Visibility = Visibility.Visible;
+        }
         HideProgress();
+        BtnCancel.IsEnabled = false;
         UpdateStatistics();
         TxtResult.Text = $"清理完成！释放了 {FormatBytes(freedSize)} 空间";
         TxtResult.Visibility = Visibility.Visible;
@@ -327,6 +353,13 @@ public partial class CleanWindow : Window
     private void BtnUnselectAll_Click(object sender, RoutedEventArgs e)
     {
         foreach (var item in _cleanItems) item.IsSelected = false;
+    }
+
+    private void BtnCancel_Click(object sender, RoutedEventArgs e)
+    {
+        _cts?.Cancel();
+        BtnCancel.IsEnabled = false;
+        TxtProgress.Text = "正在取消...";
     }
 
     private void BtnClose_Click(object sender, RoutedEventArgs e) => Close();
