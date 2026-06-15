@@ -6,15 +6,19 @@ namespace ScrewDriver.Toolbox.Core.Models;
 
 public class CleanItem : INotifyPropertyChanged
 {
-    private bool _isSelected = true;
+    private bool _isSelected;
     private long _sizeBytes;
     private int _fileCount;
 
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string Icon { get; set; } = string.Empty;
+    public string IconCode { get; set; } = "";
+    public string IconColor { get; set; } = "#2563EB";
     public List<string> ScanPaths { get; set; } = new();
     public bool IsRecycler { get; set; }
+    public bool IsRisk { get; set; }
+    public string SpecialType { get; set; } = "";
 
     public bool IsSelected
     {
