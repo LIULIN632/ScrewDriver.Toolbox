@@ -84,6 +84,15 @@ public partial class ToolRepositoryPage : Page
             vm.InstallToolCommand.Execute(tool);
     }
 
+    private void OpenUrl_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button btn && btn.Tag is string url && !string.IsNullOrEmpty(url))
+        {
+            try { Process.Start(new ProcessStartInfo(url) { UseShellExecute = true }); }
+            catch { MessageBox.Show("无法打开链接", "错误", MessageBoxButton.OK, MessageBoxImage.Error); }
+        }
+    }
+
     private void MoreButton_Click(object sender, RoutedEventArgs e)
     {
         if (sender is not Button btn) return;

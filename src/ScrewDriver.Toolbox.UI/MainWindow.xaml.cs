@@ -7,7 +7,6 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using ScrewDriver.Toolbox.Core.Services;
 using ScrewDriver.Toolbox.UI.Services;
-using ScrewDriver.Toolbox.UI.ViewModels;
 using ScrewDriver.Toolbox.UI.Views;
 using Application = System.Windows.Application;
 
@@ -113,6 +112,7 @@ public partial class MainWindow : Window
         _categoryExpanded = !_categoryExpanded;
         CategoryPanel.Visibility = _categoryExpanded ? Visibility.Visible : Visibility.Collapsed;
         ExpandIcon.Text = _categoryExpanded ? "▼" : "▶";
+        SetActiveNav("ToolRepositoryPage");
         e.Handled = true;
     }
 

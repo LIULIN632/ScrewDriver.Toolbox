@@ -41,7 +41,7 @@
 
                         <!-- 工具仓库（可折叠） -->
                         <Grid Height="48" Cursor="Hand" Tag="ToolRepositoryPage"
-                              MouseLeftButtonDown="NavItem_Click">
+                              MouseLeftButtonDown="ToggleCategoryExpand">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
@@ -52,8 +52,7 @@
                             </Border>
                             <TextBlock Grid.Column="1" x:Name="ExpandIcon" Text="▶" FontSize="10"
                                        Foreground="{DynamicResource TextTertiaryBrush}"
-                                       VerticalAlignment="Center" Margin="0,0,12,0"
-                                       MouseLeftButtonDown="ToggleCategoryExpand"/>
+                                       VerticalAlignment="Center" Margin="0,0,12,0"/>
                         </Grid>
 
                         <!-- 分类子项（初始隐藏） -->

@@ -1,4 +1,7 @@
+using System;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Threading;
@@ -14,17 +17,24 @@ public class HardwareViewModel : BaseViewModel
     private readonly HardwareService _hardwareService = new();
     private readonly DispatcherTimer _uptimeTimer;
     private DateTime _bootTime;
+    private bool _isLoading;
 
     // 硬件明细列表
     public ObservableCollection<HardwareDetailItem> HardwareItems { get; } = new();
 
     // 顶部摘要卡片
-    public string SystemModel { get; private set; } = "检测中...";
+    public string SystemModel { get; private set; } = "";
     public string SystemModelDetail { get; private set; } = "";
-    public string OsVersion { get; private set; } = "检测中...";
+    public string OsVersion { get; private set; } = "";
     public string OsVersionDetail { get; private set; } = "";
     public string Uptime { get; private set; } = "检测中...";
     public string RefreshTime { get; private set; } = "";
+
+    public bool IsLoading
+    {
+        get => _isLoading;
+        set { _isLoading = value; OnPropertyChanged(); }
+    }
 
     public ICommand RefreshCommand { get; }
     public ICommand DetailCommand { get; }
@@ -40,18 +50,21 @@ public class HardwareViewModel : BaseViewModel
         _uptimeTimer.Tick += (_, _) => UpdateUptime();
         _uptimeTimer.Start();
 
-        LoadData();
+        // 启动时异步加载，不阻塞 UI
+        _ = LoadDataAsync();
     }
 
-    private void Refresh()
+    private async void Refresh()
     {
         HardwareItems.Clear();
-        LoadData();
+        await LoadDataAsync();
     }
 
-    private void LoadData()
+    private async Task LoadDataAsync()
     {
-        // 摘要卡片：机型
+        IsLoading = true;
+
+        // 1. 同步读取轻量信息（注册表读取，不卡 UI）
         var manufacturer = SystemInfo.DetectHardwareBrand() ?? "未知";
         var model = SystemInfo.DetectSystemModel() ?? "未知";
         SystemModel = manufacturer;
@@ -59,36 +72,33 @@ public class HardwareViewModel : BaseViewModel
         OnPropertyChanged(nameof(SystemModel));
         OnPropertyChanged(nameof(SystemModelDetail));
 
-        // 摘要卡片：系统版本
         var os = SystemInfo.WindowsVersionString ?? "Windows";
         OsVersion = os.Contains("10") ? "Windows 10" : os.Contains("11") || os.Contains("10.0.2") ? "Windows 11" : os;
         OsVersionDetail = os;
         OnPropertyChanged(nameof(OsVersion));
         OnPropertyChanged(nameof(OsVersionDetail));
 
-        // 摘要卡片：运行时长
-        _bootTime = GetBootTime();
+        // 2. 后台线程执行 WMI 查询
+        var modules = await Task.Run(() => _hardwareService.GetAllDetailInfo());
+        var bootTime = await Task.Run(() => GetBootTime());
+
+        // 3. 回到 UI 线程更新
+        _bootTime = bootTime;
         UpdateUptime();
         OnPropertyChanged(nameof(Uptime));
 
-        // 硬件明细
-        RefreshTime = DateTime.Now.ToString("HH:mm:ss");
-        OnPropertyChanged(nameof(RefreshTime));
-
-        // 从 GetAllDetailInfo 展开为平面列表（每个模块取首条关键信息）
-        var modules = _hardwareService.GetAllDetailInfo();
         HardwareItems.Clear();
-
         foreach (var module in modules)
         {
             if (module.Items.Count == 0) continue;
-            // 模块标题行
             HardwareItems.Add(new HardwareDetailItem { Label = $"【{module.ModuleName}】", Value = "" });
             foreach (var item in module.Items)
-            {
                 HardwareItems.Add(item);
-            }
         }
+
+        RefreshTime = DateTime.Now.ToString("HH:mm:ss");
+        OnPropertyChanged(nameof(RefreshTime));
+        IsLoading = false;
     }
 
     // 运行时长每秒刷新

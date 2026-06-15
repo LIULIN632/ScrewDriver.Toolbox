@@ -218,6 +218,27 @@
                                             </Style>
                                         </Button.Style>
                                     </Button>
+                                    <!-- 官网下载按钮 -->
+                                    <Button Content="官网" Height="28" FontSize="12"
+                                            Padding="10,0" Margin="0,0,6,0"
+                                            Tag="{Binding OfficialUrl}"
+                                            Click="OpenUrl_Click"
+                                            ToolTip="打开官网下载页面">
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource SecondaryButtonStyle}">
+                                                <Setter Property="Height" Value="28"/>
+                                                <Setter Property="FontSize" Value="12"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding OfficialUrl}" Value="">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding OfficialUrl}" Value="{x:Null}">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
                                     <!-- 更新按钮 -->
                                     <Button Content="更新" Height="28" FontSize="12"
                                             Padding="12,0" Margin="0,0,6,0"

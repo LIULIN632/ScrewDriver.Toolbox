@@ -9,11 +9,9 @@
             <conv:RecommendationToVisibilityConverter x:Key="RecToVis"/>
             <conv:StringToVisibilityConverter x:Key="StrToVis"/>
             <conv:IconPathConverter x:Key="IconPathConverter"/>
-            <conv:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
             <!-- 品牌色 - Developer Tool 风格 -->
             <SolidColorBrush x:Key="PrimaryBrush" Color="#2563EB"/>
             <SolidColorBrush x:Key="PrimaryLightBrush" Color="#DBEAFE"/>
-            <SolidColorBrush x:Key="PrimaryDarkBrush" Color="#1D4ED8"/>
             <SolidColorBrush x:Key="SuccessBrush" Color="#22C55E"/>
             <SolidColorBrush x:Key="WarningBrush" Color="#F59E0B"/>
             <SolidColorBrush x:Key="ErrorBrush" Color="#EF4444"/>
@@ -82,40 +80,6 @@
                 </Style.Triggers>
             </Style>
 
-            <!-- 导航项样式 -->
-            <Style x:Key="NavItemStyle" TargetType="ListBoxItem">
-                <Setter Property="Height" Value="48"/>
-                <Setter Property="FontSize" Value="14"/>
-                <Setter Property="Padding" Value="16,0"/>
-                <Setter Property="Background" Value="Transparent"/>
-                <Setter Property="BorderThickness" Value="0"/>
-                <Setter Property="Cursor" Value="Hand"/>
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="ListBoxItem">
-                            <Border Background="{TemplateBinding Background}"
-                                    BorderBrush="{TemplateBinding BorderBrush}"
-                                    BorderThickness="{TemplateBinding BorderThickness}"
-                                    Padding="{TemplateBinding Padding}">
-                                <ContentPresenter VerticalAlignment="Center"/>
-                            </Border>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-                <Style.Triggers>
-                    <Trigger Property="IsSelected" Value="True">
-                        <Setter Property="Background" Value="{DynamicResource PrimaryLightBrush}"/>
-                        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
-                        <Setter Property="BorderThickness" Value="4,0,0,0"/>
-                    </Trigger>
-                    <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="Background" Value="{DynamicResource PrimaryLightBrush}"/>
-                        <Setter Property="Opacity" Value="0.7"/>
-                    </Trigger>
-                </Style.Triggers>
-            </Style>
-
-            <!-- 主按钮 -->
             <Style x:Key="PrimaryButtonStyle" TargetType="Button">
                 <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
                 <Setter Property="Foreground" Value="White"/>
@@ -218,75 +182,6 @@
                 </Setter>
             </Style>
 
-            <!-- 横向分类 Tab 样式 -->
-            <Style x:Key="CategoryTabStyle" TargetType="ListBoxItem">
-                <Setter Property="Height" Value="36"/>
-                <Setter Property="FontSize" Value="13"/>
-                <Setter Property="Padding" Value="16,0"/>
-                <Setter Property="Background" Value="Transparent"/>
-                <Setter Property="BorderThickness" Value="0"/>
-                <Setter Property="Cursor" Value="Hand"/>
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="ListBoxItem">
-                            <Border Background="{TemplateBinding Background}"
-                                    BorderBrush="{TemplateBinding BorderBrush}"
-                                    BorderThickness="{TemplateBinding BorderThickness}"
-                                    Padding="{TemplateBinding Padding}">
-                                <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                            </Border>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-                <Style.Triggers>
-                    <Trigger Property="IsSelected" Value="True">
-                        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
-                        <Setter Property="FontWeight" Value="SemiBold"/>
-                        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
-                        <Setter Property="BorderThickness" Value="0,0,0,2"/>
-                    </Trigger>
-                    <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
-                        <Setter Property="Background" Value="{DynamicResource PrimaryLightBrush}"/>
-                    </Trigger>
-                </Style.Triggers>
-            </Style>
-
-            <!-- 仓库页左侧分类导航样式 -->
-            <Style x:Key="SideCategoryStyle" TargetType="ListBoxItem">
-                <Setter Property="Height" Value="36"/>
-                <Setter Property="FontSize" Value="13"/>
-                <Setter Property="Padding" Value="12,0"/>
-                <Setter Property="Margin" Value="2"/>
-                <Setter Property="Background" Value="Transparent"/>
-                <Setter Property="BorderThickness" Value="0"/>
-                <Setter Property="Cursor" Value="Hand"/>
-                <Setter Property="Template">
-                    <Setter.Value>
-                        <ControlTemplate TargetType="ListBoxItem">
-                            <Border Background="{TemplateBinding Background}"
-                                    CornerRadius="6"
-                                    BorderThickness="{TemplateBinding BorderThickness}"
-                                    Padding="{TemplateBinding Padding}">
-                                <ContentPresenter VerticalAlignment="Center"/>
-                            </Border>
-                        </ControlTemplate>
-                    </Setter.Value>
-                </Setter>
-                <Style.Triggers>
-                    <Trigger Property="IsSelected" Value="True">
-                        <Setter Property="Background" Value="{DynamicResource PrimaryLightBrush}"/>
-                        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
-                        <Setter Property="FontWeight" Value="SemiBold"/>
-                    </Trigger>
-                    <Trigger Property="IsMouseOver" Value="True">
-                        <Setter Property="Background" Value="{DynamicResource PrimaryLightBrush}"/>
-                        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
-                    </Trigger>
-                </Style.Triggers>
-            </Style>
-
-            <!-- 导航项鼠标悬浮反馈 -->
             <Style x:Key="NavItemHover" TargetType="Border">
                 <Setter Property="Background" Value="Transparent"/>
                 <Setter Property="Cursor" Value="Hand"/>

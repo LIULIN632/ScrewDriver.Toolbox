@@ -111,7 +111,20 @@
 
         <!-- 3. 详细硬件列表 -->
         <Border Grid.Row="2" Style="{StaticResource CardStyle}" Padding="20">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <Grid>
+                <!-- 加载中 -->
+                <Grid Visibility="{Binding IsLoading, Converter={StaticResource BoolToVis}}"
+                      Height="80" VerticalAlignment="Center">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <ProgressBar Width="200" Height="4" IsIndeterminate="True"
+                                     Foreground="{DynamicResource PrimaryBrush}"
+                                     Background="{DynamicResource BorderBrush}"/>
+                        <TextBlock Text="正在检测硬件信息..." FontSize="13"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   HorizontalAlignment="Center" Margin="0,8,0,0"/>
+                    </StackPanel>
+                </Grid>
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <ItemsControl ItemsSource="{Binding HardwareItems}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
@@ -133,6 +146,7 @@
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
             </ScrollViewer>
+            </Grid>
         </Border>
     </Grid>
 </Page>
