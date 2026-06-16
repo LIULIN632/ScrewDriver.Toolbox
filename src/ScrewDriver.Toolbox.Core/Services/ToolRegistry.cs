@@ -12,7 +12,8 @@ public static class ToolRegistry
     {
         "系统工具", "CPU工具", "主板工具", "内存工具",
         "显卡工具", "硬盘工具", "屏幕工具", "外设工具",
-        "安全工具", "品牌工具", "启动与镜像", "其他工具"
+        "安全工具", "品牌工具", "启动与镜像",
+        "游戏工具", "烤鸡工具", "综合检测", "其他工具"
     };
 
     public static List<ToolItem> GetAllTools()
@@ -28,6 +29,8 @@ public static class ToolRegistry
             AddPeripheralScreen();
             AddBrandTools();
             AddOtherTools();
+            AddGameTools();
+            AddBenchTools();
         }
         var all = new List<ToolItem>(_allTools);
         all.AddRange(GetCustomTools());
@@ -97,37 +100,55 @@ public static class ToolRegistry
             Description = "磁盘分区管理、数据恢复、备份克隆，国产专业磁盘工具",
             OfficialUrl = "https://www.diskgenius.cn/",
             WingetId = "", RiskLevel = "注意" },
-        
-        
         new() { Name = "右键菜单管理", Category = "系统工具",
             Description = "管理 Windows 右键菜单和 Shell 扩展，禁用卡顿来源的第三方扩展",
             LaunchPath = "ms-settings:installed-apps", RiskLevel = "注意" },
-        
-        
-        
-        
+        new() { Name = "SuperPI", Category = "CPU工具",
+            Description = "经典单核性能测试工具，通过计算圆周率评估CPU单线程性能",
+            OfficialUrl = "https://www.techpowerup.com/download/superpi/", RiskLevel = "安全" },
         new() { Name = "Win11 轻松设置", Category = "系统工具",
             Description = "Windows 11 系统设置优化工具，一键关闭广告/禁用Defender/调整隐私/恢复经典菜单等",
-            OfficialUrl = "https://www.bilibili.com/read/cv24956327/", RiskLevel = "注意" }
-    });
+            OfficialUrl = "https://www.bilibili.com/opus/904672369138729017/", RiskLevel = "注意" },
+        new() { Name = "设备管理器", Category = "系统工具",
+            Description = "查看和管理计算机上的硬件设备及其驱动程序",
+            LaunchPath = "devmgmt.msc", RiskLevel = "安全" },
+        new() { Name = "磁盘管理", Category = "系统工具",
+            Description = "管理磁盘分区、格式化、更改驱动器号等",
+            LaunchPath = "diskmgmt.msc", RiskLevel = "注意" },
+        new() { Name = "任务管理器", Category = "系统工具",
+            Description = "查看运行中的进程、性能、应用历史记录和启动项",
+            LaunchPath = "taskmgr.exe", RiskLevel = "安全" },
+        new() { Name = "注册表编辑器", Category = "系统工具",
+            Description = "查看和修改 Windows 注册表中的系统设置",
+            LaunchPath = "regedit.exe", RiskLevel = "注意" },
+        new() { Name = "控制面板", Category = "系统工具",
+            Description = "Windows 传统控制面板，访问系统设置和管理工具",
+            LaunchPath = "control.exe", RiskLevel = "安全" },
+        new() { Name = "系统信息", Category = "系统工具",
+            Description = "查看硬件资源、组件和软件环境的详细信息",
+            LaunchPath = "msinfo32.exe", RiskLevel = "安全" },
+        new() { Name = "程序和功能", Category = "系统工具",
+            Description = "卸载或更改已安装的程序和 Windows 功能",
+            LaunchPath = "appwiz.cpl", RiskLevel = "注意" },
+        new() { Name = "磁盘清理", Category = "系统工具",
+            Description = "扫描并删除临时文件、系统缓存等不需要的文件",
+            LaunchPath = "cleanmgr.exe", RiskLevel = "安全" },
+        new() { Name = "系统配置", Category = "系统工具",
+            Description = "管理启动项、服务和引导配置的高级系统工具",
+            LaunchPath = "msconfig.exe", RiskLevel = "注意" },
+        });
 
     // ============================================================
     // 2. 安全与优化 (9)
     // ============================================================
     private static void AddSecurityTools() => _allTools!.AddRange(new List<ToolItem>
     {
-        new() { Name = "证书拦截", Category = "安全工具",
-            Description = "管理 Windows 证书存储，查看/导入/删除受信任的根证书和客户端证书",
-            LaunchPath = "certmgr.msc", RiskLevel = "安全" },
         new() { Name = "Defender 控制", Category = "安全工具",
             Description = "打开 Windows 安全中心，管理病毒防护、防火墙和账户保护设置",
             LaunchPath = "windowsdefender://", RiskLevel = "安全" },
         new() { Name = "KMS 激活", Category = "其他工具",
             Description = "Windows/Office 批量激活管理，查看激活状态、设置 KMS 服务器、产品密钥管理",
             LaunchPath = "cmd.exe /k slmgr.vbs -dlv", RiskLevel = "注意" },
-        new() { Name = "游戏加速", Category = "安全工具",
-            Description = "一键切换高性能电源计划 + 关闭 Defender 实时防护，游戏结束后恢复",
-            LaunchPath = "scenario:game-accelerate", RiskLevel = "注意" },
         new() { Name = "游戏优化", Category = "安全工具",
             Description = "打开 Windows 游戏模式设置，启用 GPU 硬件加速和可变刷新率",
             LaunchPath = "ms-settings:gaming-gamemode", RiskLevel = "安全" },
@@ -138,7 +159,7 @@ public static class ToolRegistry
         new() { Name = "MSI Afterburner", Category = "显卡工具",
             Description = "显卡超频工具，支持频率/电压/风扇曲线调节与 OSD 监控",
             OfficialUrl = "https://www.msi.com/Landing/afterburner/graphics-cards",
-            WingetId = "", RiskLevel = "注意" },
+            WingetId = "Guru3D.MSIAfterburner", RiskLevel = "注意" },
         new() { Name = "NVIDIA Profile Inspector", Category = "显卡工具",
             Description = "N 卡驱动级参数深度调节，修改驱动配置文件，解锁隐藏设置",
             GithubUrl = "https://github.com/Orbmu2k/nvidiaProfileInspector",
@@ -193,7 +214,7 @@ public static class ToolRegistry
         new() { Name = "AIDA64 Extreme", Category = "主板工具",
             Description = "专业系统检测与基准测试，覆盖硬件检测、压力测试、传感器监控",
             OfficialUrl = "https://www.aida64.com/downloads",
-            WingetId = "", RiskLevel = "安全" },
+            WingetId = "FinalWire.AIDA64", RiskLevel = "安全" },
         new() { Name = "Core Temp", Category = "CPU工具",
             Description = "轻量级 CPU 温度监控，任务栏实时显示每核心温度和负载",
             OfficialUrl = "https://www.alcpu.com/CoreTemp/",
@@ -214,6 +235,9 @@ public static class ToolRegistry
             Description = "内存 SPD 信息读取，查看颗粒厂商/型号/时序/XMP 等详细信息",
             OfficialUrl = "https://www.thaiphoonburner.com/",
             WingetId = "", RiskLevel = "安全" },
+        new() { Name = "MemTest64", Category = "内存工具",
+            Description = "64位系统内存稳定性测试，支持多线程并行测试",
+            OfficialUrl = "https://www.techpowerup.com/download/techpowerup-memtest64/", RiskLevel = "安全" },
         new() { Name = "ZenTimings", Category = "内存工具",
             Description = "AMD Ryzen 内存时序实时查看，一键显示全部小参和 Infinity Fabric",
             GithubUrl = "https://github.com/irusanov/ZenTimings",
@@ -222,11 +246,11 @@ public static class ToolRegistry
         new() { Name = "BatteryInfoView", Category = "其他工具",
             Description = "NirSoft 电池信息查看，设计容量/实际容量/损耗率/循环次数",
             OfficialUrl = "https://www.nirsoft.net/utils/battery_information_view.html",
-            WingetId = "", RiskLevel = "安全" },
+            WingetId = "NirSoft.BatteryInfoView", RiskLevel = "安全" },
         new() { Name = "SpeedFan", Category = "主板工具",
             Description = "硬件温度与风扇转速监控，支持自定义风扇曲线和自动调速",
             OfficialUrl = "https://www.almico.com/speedfan.php",
-            WingetId = "", RiskLevel = "注意" }
+            WingetId = "AlfredoComparetti.SpeedFan", RiskLevel = "注意" }
     });
 
     // ============================================================
@@ -245,7 +269,7 @@ public static class ToolRegistry
         new() { Name = "HDTune", Category = "硬盘工具",
             Description = "经典硬盘基准测试，支持读写速度曲线/坏道扫描/健康状态检测",
             OfficialUrl = "https://www.hdtune.com/",
-            WingetId = "", RiskLevel = "安全" },
+            WingetId = "HDTune.HDTune", RiskLevel = "安全" },
         new() { Name = "ATTO Disk Benchmark", Category = "硬盘工具",
             Description = "专业磁盘 I/O 基准测试，多块大小测试 IO 吞吐，企业级存储常用",
             OfficialUrl = "https://www.atto.com/disk-benchmark/",
@@ -254,18 +278,18 @@ public static class ToolRegistry
             Description = "SSD 基准测试与安全擦除，支持 NVMe 驱动级测试，日本老牌工具",
             OfficialUrl = "https://www.texim.jp/txbenchus.html",
             WingetId = "", RiskLevel = "安全" },
+        new() { Name = "Defraggler", Category = "硬盘工具",
+            Description = "磁盘碎片整理工具，支持单个文件或整个磁盘快速整理",
+            OfficialUrl = "https://www.ccleaner.com/defraggler",
+            WingetId = "Piriform.Defraggler", RiskLevel = "安全" },
         new() { Name = "h2testw", Category = "硬盘工具",
             Description = "U 盘/MicroSD 真容量检测，写入验证，识别扩容假卡/假 U 盘",
             OfficialUrl = "https://www.heise.de/download/product/h2testw-50539",
             WingetId = "", RiskLevel = "安全" },
-        new() { Name = "FurMark", Category = "显卡工具",
-            Description = "显卡压力测试与温度检测，俗称甜甜圈，验证散热与稳定性",
-            OfficialUrl = "https://geeks3d.com/furmark/",
-            WingetId = "Geeks3D.FurMark", RiskLevel = "注意" },
         new() { Name = "GpuTest", Category = "显卡工具",
             Description = "跨平台 GPU 压力测试，含 FurMark/TessMark/Pixmark 多种场景",
             OfficialUrl = "https://www.geeks3d.com/gputest/",
-            WingetId = "", RiskLevel = "注意" },
+            WingetId = "Geeks3D.GpuTest", RiskLevel = "注意" },
         new() { Name = "Prime95", Category = "CPU工具",
             Description = "CPU 压力测试与稳定性验证，超频后必测，支持 AVX 指令集",
             OfficialUrl = "https://www.mersenne.org/download/",
@@ -322,14 +346,13 @@ public static class ToolRegistry
             GithubUrl = "https://github.com/octeep/MouseTester",
             OfficialUrl = "https://github.com/octeep/MouseTester",
             WingetId = "", RiskLevel = "安全" },
+        new() { Name = "AresonMouseTest", Category = "外设工具",
+            Description = "鼠标按键测试工具，检测鼠标按键回弹、双击和延迟问题",
+            OfficialUrl = "http://www.softpedia.com/get/System/System-Miscellaneous/Areson-Mouse-Test.shtml", RiskLevel = "安全" },
         new() { Name = "KeyTweak", Category = "外设工具",
             Description = "Windows 键盘键位映射修改，无需驱动即可重构键盘布局",
             OfficialUrl = "https://www.keytweak.com/",
-            WingetId = "", RiskLevel = "注意" },
-        new() { Name = "显示帧率", Category = "显卡工具",
-            Description = "启动 RivaTuner Statistics Server (RTSS) 屏幕帧率显示，需先安装 MSI Afterburner",
-            LaunchPath = "rtss.exe", OfficialUrl = "https://www.msi.com/Landing/afterburner/graphics-cards",
-            WingetId = "", RiskLevel = "安全" }
+            WingetId = "", RiskLevel = "注意" }
     });
 
     // ============================================================
@@ -350,13 +373,15 @@ public static class ToolRegistry
             OfficialUrl = "https://www.asus.com.cn/support/", RiskLevel = "安全" },
         new() { Name = "OmenSuperHub", Category = "品牌工具",
             Description = "替代官方OMEN Gaming Hub，完全离线无广告。WMI BIOS直控风扇、解除DB功耗墙、性能模式切换",
-            GithubUrl = "https://github.com/", RiskLevel = "注意" },
+            GithubUrl = "https://github.com/nn9dev/OmenSuperHub",
+            OfficialUrl = "https://github.com/nn9dev/OmenSuperHub", RiskLevel = "注意" },
         new() { Name = "OMEN Gaming Hub", Category = "品牌工具",
             Description = "HP官方游戏控制中心，灯光、性能、网络优化一站式管理",
             OfficialUrl = "https://www.microsoft.com/store/", RiskLevel = "安全" },
         new() { Name = "TCC-G15", Category = "品牌工具",
             Description = "G模式一键切换+风扇调节，可与官方AWCC共存，支持G15/G16及部分外星人",
-            GithubUrl = "https://github.com/", RiskLevel = "注意" },
+            GithubUrl = "https://github.com/JT1CD/TCC-G15",
+            OfficialUrl = "https://github.com/JT1CD/TCC-G15", RiskLevel = "注意" },
         new() { Name = "Alienware Command Center", Category = "品牌工具",
             Description = "戴尔/Alienware官方系统控制中心，灯光、超频、散热全控制",
             OfficialUrl = "https://www.dell.com/support/", RiskLevel = "安全" },
@@ -397,6 +422,10 @@ public static class ToolRegistry
             Description = "截图 + 贴图工具，支持像素级截图取色和屏幕贴图，设计师效率利器",
             OfficialUrl = "https://www.snipaste.com/",
             WingetId = "Snipaste.Snipaste", RiskLevel = "推荐" },
+        new() { Name = "Recuva", Category = "其他工具",
+            Description = "免费文件恢复工具，恢复误删除的照片、文档、视频等",
+            OfficialUrl = "https://www.ccleaner.com/recuva",
+            WingetId = "Piriform.Recuva", RiskLevel = "安全" },
         new() { Name = "ScreenToGif", Category = "其他工具",
             Description = "屏幕录制为 GIF 动画，支持编辑器裁剪、帧率调节、文字标注",
             OfficialUrl = "https://www.screentogif.com/",
@@ -406,5 +435,44 @@ public static class ToolRegistry
             GithubUrl = "https://github.com/Starboihub/DXVAChecker",
             OfficialUrl = "https://github.com/Starboihub/DXVAChecker",
             WingetId = "", RiskLevel = "安全" }
+    });
+
+    // ============================================================
+    // 9. 游戏工具 (4)
+    // ============================================================
+    private static void AddGameTools() => _allTools!.AddRange(new List<ToolItem>
+    {
+        new() { Name = "Steam", Category = "游戏工具",
+            Description = "全球最大的 PC 游戏数字发行平台，数千款游戏一站式管理",
+            OfficialUrl = "https://store.steampowered.com/", WingetId = "Valve.Steam", RiskLevel = "安全" },
+        new() { Name = "EPIC Games", Category = "游戏工具",
+            Description = "EPIC 游戏商店，每周免费游戏、虚幻引擎生态",
+            OfficialUrl = "https://store.epicgames.com/", WingetId = "EpicGames.EpicGamesLauncher", RiskLevel = "安全" },
+        new() { Name = "EA App", Category = "游戏工具",
+            Description = "EA 游戏平台，管理 EA Play 订阅和游戏库",
+            OfficialUrl = "https://www.ea.com/ea-app", RiskLevel = "安全" },
+        new() { Name = "战网", Category = "游戏工具",
+            Description = "暴雪游戏平台，管理魔兽世界、守望先锋、暗黑破坏神等",
+            OfficialUrl = "https://www.blizzard.com/apps/battle.net/desktop", RiskLevel = "安全" }
+    });
+
+    // ============================================================
+    // 10. 烤鸡工具 (4)
+    // ============================================================
+    private static void AddBenchTools() => _allTools!.AddRange(new List<ToolItem>
+    {
+        new() { Name = "FurMark", Category = "烤鸡工具",
+            Description = "显卡压力测试与温度检测，俗称甜甜圈，验证散热与稳定性",
+            OfficialUrl = "https://geeks3d.com/furmark/",
+            WingetId = "Geeks3D.FurMark", RiskLevel = "注意" },
+        new() { Name = "Prime95", Category = "烤鸡工具",
+            Description = "CPU 压力测试与稳定性验证，超频后必测，支持 AVX 指令集",
+            OfficialUrl = "https://www.mersenne.org/download/", RiskLevel = "注意" },
+        new() { Name = "LinX", Category = "烤鸡工具",
+            Description = "Intel Linpack 前端，CPU 极限压力测试",
+            GithubUrl = "https://github.com/Mysticial/NumberFactory", RiskLevel = "注意" },
+        new() { Name = "CPU Burner", Category = "烤鸡工具",
+            Description = "单文件 CPU 满载测试工具，快速检测散热和稳定性",
+            OfficialUrl = "https://www.softpedia.com/get/System/Benchmarks/CPU-Burner.shtml", RiskLevel = "注意" }
     });
 }

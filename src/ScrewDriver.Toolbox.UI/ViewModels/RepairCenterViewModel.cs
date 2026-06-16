@@ -21,7 +21,8 @@ public class RepairCenterViewModel : BaseViewModel
     private static readonly HashSet<string> _repairCategories = new(StringComparer.OrdinalIgnoreCase)
     {
         "系统工具", "安全工具", "CPU工具", "主板工具", "内存工具",
-        "显卡工具", "硬盘工具", "屏幕工具", "外设工具"
+        "显卡工具", "硬盘工具", "屏幕工具", "外设工具",
+        "游戏工具", "烤鸡工具", "综合检测"
     };
 
     public RepairCenterViewModel()

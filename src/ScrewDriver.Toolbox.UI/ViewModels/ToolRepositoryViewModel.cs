@@ -42,7 +42,8 @@ public class ToolRepositoryViewModel : BaseViewModel
     {
         "全部", "系统工具", "CPU工具", "主板工具", "内存工具",
         "显卡工具", "硬盘工具", "屏幕工具", "外设工具",
-        "安全工具", "品牌工具", "启动与镜像", "其他工具"
+        "安全工具", "品牌工具", "启动与镜像",
+        "游戏工具", "烤鸡工具", "综合检测", "其他工具"
     };
 
     public string SearchText
