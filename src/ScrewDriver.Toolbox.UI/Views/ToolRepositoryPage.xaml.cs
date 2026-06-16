@@ -50,7 +50,6 @@ public partial class ToolRepositoryPage : Page
     {
         if (e.Data.GetDataPresent(DataFormats.FileDrop))
             e.Effects = DragDropEffects.Copy;
-        e.Handled = true;
     }
 
     private void Page_Drop(object sender, DragEventArgs e)

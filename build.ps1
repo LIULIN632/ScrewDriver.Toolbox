@@ -45,8 +45,13 @@ New-Item -ItemType Directory -Force -Path $DistDir | Out-Null
 # Copy exe from publish output
 if (Test-Path "$PublishDir\ScrewDriver.Toolbox.exe") {
     Copy-Item "$PublishDir\ScrewDriver.Toolbox.exe" "$DistDir\ScrewDriver.Toolbox.exe" -Force
-} else {
-    # Single-file publish may output directly to DistDir
+}
+
+# Copy Tools/ if exists (内置绿色工具)
+$SrcToolsDir = "$RootDir\src\ScrewDriver.Toolbox.UI\Tools"
+if (Test-Path $SrcToolsDir) {
+    Copy-Item -Recurse $SrcToolsDir "$DistDir\Tools"
+    Write-Host "  Tools/ directory included" -ForegroundColor Gray
 }
 
 # Create ZIP
