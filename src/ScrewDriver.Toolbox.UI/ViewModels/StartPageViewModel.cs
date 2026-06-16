@@ -86,21 +86,25 @@ public class StartPageViewModel : BaseViewModel
     private void RefreshFromCache()
     {
         FilteredTools.Clear();
-        IEnumerable<ToolItem> all = InstalledToolsCache.Instance.InstalledTools;
+        // 合并已安装工具 + Tools 目录中的额外工具
+        var all = new List<ToolItem>();
+        all.AddRange(InstalledToolsCache.Instance.InstalledTools);
+        all.AddRange(InstalledToolsCache.Instance.ToolsFolderTools);
 
-        // 启动页显示所有已安装工具（InstalledToolsCache 已过滤）
+        // 启动页显示所有已安装工具 + Tools 工具
+        IEnumerable<ToolItem> filtered = all;
 
         if (!string.IsNullOrEmpty(SearchText))
-            all = all.Where(t =>
+            filtered = filtered.Where(t =>
                 t.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
                 t.Description.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
 
         if (SelectedCategory != "全部")
-            all = all.Where(t => t.Category == SelectedCategory);
+            filtered = filtered.Where(t => t.Category == SelectedCategory);
 
-        all = all.OrderByDescending(t => t.IsPinned).ThenBy(t => t.Name);
+        filtered = filtered.OrderByDescending(t => t.IsPinned).ThenBy(t => t.Name);
 
-        foreach (var t in all)
+        foreach (var t in filtered)
             FilteredTools.Add(t);
     }
 

@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Security.Cryptography;
 using System.Text;
 using ScrewDriver.Toolbox.Core.Models;
@@ -11,7 +12,10 @@ public class InstalledToolsCache
 
     private readonly object _lock = new();
     private List<ToolItem> _installedTools = new();
+    private List<ToolItem> _toolsFolderTools = new(); // Tools 中未注册的 exe
     private HashSet<string> _pinnedNames = new();
+    private FileSystemWatcher? _watcher;
+
     public List<ToolItem> InstalledTools
     {
         get
@@ -21,6 +25,20 @@ public class InstalledToolsCache
                 if (!IsInitialized)
                     _ = InitializeAsync();
                 return new List<ToolItem>(_installedTools);
+            }
+        }
+    }
+
+    /// <summary>Tools 目录中未注册仓库的额外工具</summary>
+    public List<ToolItem> ToolsFolderTools
+    {
+        get
+        {
+            lock (_lock)
+            {
+                if (!IsInitialized)
+                    _ = InitializeAsync();
+                return new List<ToolItem>(_toolsFolderTools);
             }
         }
     }
@@ -71,7 +89,7 @@ public class InstalledToolsCache
                     _pinnedNames = new HashSet<string>(names);
             }
         }
-        catch { /* ignore deserialize failures */ }
+        catch { }
     }
 
     private void SavePinnedNames()
@@ -85,7 +103,7 @@ public class InstalledToolsCache
                 File.WriteAllText(path, json);
             }
         }
-        catch { /* ignore write failures */ }
+        catch { }
     }
 
     private void RefreshPinnedState()
@@ -100,47 +118,15 @@ public class InstalledToolsCache
 
     public async Task InitializeAsync()
     {
-        await Task.Run(() =>
-        {
-            var allTools = ToolRegistry.GetAllTools();
-            allTools.AddRange(ToolRegistry.GetCustomTools());
-
-            // 扫描 Tools 目录，匹配到对应工具
-            var toolsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools");
-            if (Directory.Exists(toolsDir))
-            {
-                foreach (var tool in allTools)
-                {
-                    if (string.IsNullOrEmpty(tool.LocalExePath))
-                    {
-                        // 按工具名匹配 Tools 目录下的 exe
-                        var exeName = tool.Name.Replace(" ", "").Replace("-", "") + ".exe";
-                        var found = Directory.GetFiles(toolsDir, $"*{tool.Name}*", SearchOption.AllDirectories)
-                            .FirstOrDefault(f => f.EndsWith(".exe", StringComparison.OrdinalIgnoreCase));
-                        if (found != null)
-                            tool.LocalExePath = found;
-                    }
-                }
-            }
-
-            var launchable = allTools
-                .Where(IsToolLaunchable)
-                .Select(t => { t.IsPinned = IsPinned(t.Name); return t; })
-                .OrderByDescending(t => t.IsPinned)
-                .ThenBy(t => t.Category)
-                .ThenBy(t => t.Name)
-                .ToList();
-
-            lock (_lock)
-            {
-                _installedTools = launchable;
-            }
-        });
+        await Task.Run(() => ScanTools());
 
         IsInitialized = true;
         CacheUpdated?.Invoke();
 
-        // Icons load lazily in background after tools are displayed
+        // 注册文件监听，Tools 目录变动时自动刷新
+        SetupFileWatcher();
+
+        // Icons load lazily in background
         _ = Task.Run(() =>
         {
             List<ToolItem> snapshot;
@@ -160,6 +146,117 @@ public class InstalledToolsCache
         });
     }
 
+    private void ScanTools()
+    {
+        var allTools = ToolRegistry.GetAllTools();
+        allTools.AddRange(ToolRegistry.GetCustomTools());
+
+        var toolsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools");
+        var toolsExeMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var unknownExes = new List<string>();
+
+        // 1. 扫描 Tools 目录一次，收集所有 exe
+        if (Directory.Exists(toolsDir))
+        {
+            foreach (var exePath in Directory.GetFiles(toolsDir, "*.exe", SearchOption.AllDirectories))
+            {
+                var fileName = Path.GetFileNameWithoutExtension(exePath);
+                toolsExeMap[fileName] = exePath;
+            }
+        }
+
+        // 2. 一把匹配所有工具
+        foreach (var tool in allTools)
+        {
+            if (!string.IsNullOrEmpty(tool.LocalExePath) && File.Exists(tool.LocalExePath))
+                continue;
+
+            // 尝试按工具名匹配
+            var searchKey = tool.Name.Replace(" ", "").Replace("-", "").Replace(".", "");
+            if (toolsExeMap.TryGetValue(searchKey, out var matchedPath))
+            {
+                tool.LocalExePath = matchedPath;
+                toolsExeMap.Remove(searchKey);
+            }
+            else
+            {
+                // 模糊匹配：工具名包含 exe 名或反之
+                var fuzzy = toolsExeMap.Keys.FirstOrDefault(k =>
+                    k.Contains(searchKey, StringComparison.OrdinalIgnoreCase) ||
+                    searchKey.Contains(k, StringComparison.OrdinalIgnoreCase));
+                if (fuzzy != null)
+                {
+                    tool.LocalExePath = toolsExeMap[fuzzy];
+                    toolsExeMap.Remove(fuzzy);
+                }
+            }
+        }
+
+        // 3. 未匹配到的 exe 作为"额外工具"保留
+        unknownExes = toolsExeMap.Values.ToList();
+
+        // 4. 筛选可启动的工具
+        var launchable = allTools
+            .Where(IsToolLaunchable)
+            .Select(t => { t.IsPinned = IsPinned(t.Name); return t; })
+            .OrderByDescending(t => t.IsPinned)
+            .ThenBy(t => t.Category)
+            .ThenBy(t => t.Name)
+            .ToList();
+
+        // 5. 为未匹配的 exe 创建临时 ToolItem
+        var extraTools = unknownExes.Select(exe =>
+        {
+            var name = Path.GetFileNameWithoutExtension(exe);
+            return new ToolItem
+            {
+                Name = name,
+                LocalExePath = exe,
+                Category = "其他工具",
+                Description = $"Tools 目录: {name}",
+                RiskLevel = "安全",
+                IsInstalled = true
+            };
+        }).ToList();
+
+        lock (_lock)
+        {
+            _installedTools = launchable;
+            _toolsFolderTools = extraTools;
+        }
+    }
+
+    private void SetupFileWatcher()
+    {
+        var toolsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools");
+        if (!Directory.Exists(toolsDir)) return;
+
+        try
+        {
+            _watcher?.Dispose();
+            _watcher = new FileSystemWatcher(toolsDir, "*.exe")
+            {
+                IncludeSubdirectories = true,
+                EnableRaisingEvents = true,
+                NotifyFilter = NotifyFilters.FileName | NotifyFilters.DirectoryName
+            };
+
+            // 防抖：文件变动后等 1 秒再刷新，避免多次触发
+            var timer = new System.Timers.Timer(1000) { AutoReset = false };
+            _watcher.Changed += (_, _) => { timer.Stop(); timer.Start(); };
+            _watcher.Created += (_, _) => { timer.Stop(); timer.Start(); };
+            _watcher.Deleted += (_, _) => { timer.Stop(); timer.Start(); };
+            timer.Elapsed += async (_, _) =>
+            {
+                await Task.Run(() => ScanTools());
+                IsInitialized = true;
+                CacheUpdated?.Invoke();
+                timer.Dispose();
+            };
+        }
+        catch { }
+    }
+
     public async Task RefreshAsync() => await InitializeAsync();
 
     private static readonly HashSet<string> _systemExes = new(StringComparer.OrdinalIgnoreCase)
@@ -170,30 +267,25 @@ public class InstalledToolsCache
 
     private static bool IsToolLaunchable(ToolItem tool)
     {
-        // 1. LocalExePath from drag-drop or local scan: check file exists
         if (!string.IsNullOrEmpty(tool.LocalExePath) && File.Exists(tool.LocalExePath))
             return true;
 
         var path = tool.LaunchPath;
         if (string.IsNullOrEmpty(path)) return false;
 
-        // 2. Known URI schemes — always launchable without file check
         if (path.StartsWith("ms-") || path.StartsWith("http") || path.StartsWith("https") ||
             path.StartsWith("scenario:") || path.StartsWith("windowsdefender:"))
             return true;
 
-        // 3. "cmd.exe /k ..." or "cmd.exe /c ..." — extract first token
         if (path.StartsWith("cmd.exe ", StringComparison.OrdinalIgnoreCase))
-            return true; // cmd.exe always exists on Windows
+            return true;
         if (path.StartsWith("notepad ", StringComparison.OrdinalIgnoreCase))
-            return true; // notepad.exe always exists on Windows
+            return true;
 
-        // 4. Known system executables — always available on Windows
         var fileName = Path.GetFileName(path);
         if (_systemExes.Contains(fileName))
             return true;
 
-        // 5. Fallback: check file existence on disk
         return File.Exists(path);
     }
 
