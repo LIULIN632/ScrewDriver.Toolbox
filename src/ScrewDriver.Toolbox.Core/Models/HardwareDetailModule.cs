@@ -11,4 +11,5 @@ public class HardwareDetailItem
 {
     public string Label { get; set; } = string.Empty;
     public string Value { get; set; } = string.Empty;
+    public bool IsHeader { get; set; }
 }

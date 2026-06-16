@@ -42,3 +42,4 @@ build_output/
 _publish_*/
 _dist_*/
 _archive/
+installer/

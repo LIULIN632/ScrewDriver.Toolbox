@@ -92,7 +92,7 @@ public class HardwareViewModel : BaseViewModel
         foreach (var module in modules)
         {
             if (module.Items.Count == 0) continue;
-            HardwareItems.Add(new HardwareDetailItem { Label = $"【{module.ModuleName}】", Value = "" });
+            HardwareItems.Add(new HardwareDetailItem { Label = module.ModuleName, Value = "", IsHeader = true });
             foreach (var item in module.Items)
                 HardwareItems.Add(item);
         }

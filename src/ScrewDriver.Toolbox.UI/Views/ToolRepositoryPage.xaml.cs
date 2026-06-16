@@ -46,6 +46,13 @@ public partial class ToolRepositoryPage : Page
             e.Effects = DragDropEffects.None;
     }
 
+    private void Page_PreviewDragOver(object sender, DragEventArgs e)
+    {
+        if (e.Data.GetDataPresent(DataFormats.FileDrop))
+            e.Effects = DragDropEffects.Copy;
+        e.Handled = true;
+    }
+
     private void Page_Drop(object sender, DragEventArgs e)
     {
         if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;

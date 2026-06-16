@@ -90,7 +90,7 @@ public static class ToolRegistry
             WingetId = "AntibodySoftware.WizTree", RiskLevel = "推荐" },
         new() { Name = "DirectX 修复工具", Category = "系统工具",
             Description = "DirectX 组件修复与运行库补全，一键检测并修复缺失 DLL",
-            OfficialUrl = "https://blog.csdn.net/vbcom/article/details/6962388",
+            OfficialUrl = "https://www.crsky.com/soft/77560.html",
             WingetId = "", RiskLevel = "安全" },
         new() { Name = "蓝屏分析", Category = "系统工具",
             Description = "NirSoft 蓝屏转储分析，自动解析 minidump 文件定位崩溃驱动",
@@ -123,7 +123,15 @@ public static class ToolRegistry
             Description = "轻量开源视频播放器，GPU 渲染、低延迟、高自定义",
             OfficialUrl = "https://mpv.io/",
             WingetId = "shinchiro.mpv", RiskLevel = "安全" },
-                                                                        });
+        new() { Name = "Bandizip", Category = "系统工具",
+            Description = "轻量快速的文件压缩/解压工具，支持多种格式，界面简洁",
+            OfficialUrl = "https://www.bandisoft.com/bandizip/",
+            WingetId = "Bandisoft.Bandizip", RiskLevel = "推荐" },
+        new() { Name = "HiBit Uninstaller", Category = "系统工具",
+            Description = "强大的软件卸载工具，支持强制卸载、残留清理、绿色软件扫描",
+            OfficialUrl = "https://www.hibitsoft.ir/HiBitUninstaller/",
+            WingetId = "HiBitSoftware.HiBitUninstaller", RiskLevel = "安全" },
+    });
 
     // ============================================================
     // 2. 安全与优化 (9)
@@ -411,8 +419,7 @@ public static class ToolRegistry
             WingetId = "NickeManarin.ScreenToGif", RiskLevel = "推荐" },
         new() { Name = "DXVAChecker", Category = "其他工具",
             Description = "DirectX 视频加速检查，查看编解码器/GPU 加速/DXVA 硬件解码支持",
-            OfficialUrl = "https://bluesky23.yukishigure.com/en/DXVAChecker.html",
-            GithubUrl = "https://github.com/Starboihub/DXVAChecker",
+            OfficialUrl = "https://github.com/Starboihub/DXVAChecker",
             WingetId = "", RiskLevel = "安全" }
     });
 

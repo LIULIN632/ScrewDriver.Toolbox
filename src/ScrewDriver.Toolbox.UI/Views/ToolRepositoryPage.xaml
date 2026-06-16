@@ -6,7 +6,8 @@
       Title="工具仓库"
       AllowDrop="True"
       DragEnter="Page_DragEnter"
-      Drop="Page_Drop">
+      Drop="Page_Drop"
+      PreviewDragOver="Page_PreviewDragOver">
     <Page.Resources>
         <conv:BoolToVisibilityConverter x:Key="BoolToVis"/>
         <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVis"/>
