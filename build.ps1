@@ -78,7 +78,15 @@ if ($Installer) {
         if (Test-Path $p) { $isccPath = $p; break }
     }
     if (Test-Path $isccPath) {
-        & $isccPath "$RootDir\installer.iss"
+        # 检查 Tools 目录是否有文件，有则启用 IncludeTools
+        $toolsDir = "$RootDir\src\ScrewDriver.Toolbox.UI\Tools"
+        $hasTools = (Test-Path $toolsDir) -and ((Get-ChildItem $toolsDir -Recurse -File | Measure-Object).Count -gt 0)
+        $defineArgs = ""
+        if ($hasTools) {
+            $defineArgs = "/dIncludeTools"
+            Write-Host "  Tools 目录有 $((Get-ChildItem $toolsDir -Recurse -File | Measure-Object).Count) 个文件，已包含" -ForegroundColor Gray
+        }
+        & $isccPath $defineArgs "$RootDir\installer.iss"
         $setupPath = "$RootDir\installer\ScrewDriverToolbox_v$Version`_Setup.exe"
         if (Test-Path $setupPath) {
             $setupSize = (Get-Item $setupPath).Length / 1MB

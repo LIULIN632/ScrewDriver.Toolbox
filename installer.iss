@@ -36,7 +36,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 Source: "dist\release\ScrewDriver.Toolbox.exe"; DestDir: "{app}"; Flags: ignoreversion
 ; 内置绿色工具（运行 download_tools.ps1 下载后会自动打包）
-; 取消下一行注释以强制包含 Tools 目录（即使为空）
+; 如果 Tools 目录有文件，取消下行注释再编译
 ; #define IncludeTools
 #ifdef IncludeTools
 Source: "src\ScrewDriver.Toolbox.UI\Tools\*"; DestDir: "{app}\Tools"; Flags: ignoreversion recursesubdirs createallsubdirs
