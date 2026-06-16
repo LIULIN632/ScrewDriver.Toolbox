@@ -10,6 +10,11 @@ $ToolsDir = "src\ScrewDriver.Toolbox.UI\Tools"
 New-Item -ItemType Directory -Force -Path $ToolsDir | Out-Null
 
 $tools = @(
+    @{ Name = "Everything"; Url = "https://www.voidtools.com/Everything-1.4.1.1026.x64.zip"; Exe = "Everything.exe" },
+    @{ Name = "Dism++"; Url = "https://github.com/Chuyu-Team/Dism-Multi-language/releases/download/v10.1.1002.1/Dism++10.1.1002.1.zip"; Exe = "Dism++x64.exe" },
+    @{ Name = "WizTree"; Url = "https://diskanalyzer.com/files/WizTree_x64_portable.zip"; Exe = "WizTree64.exe" },
+    @{ Name = "Ventoy"; Url = "https://github.com/ventoy/Ventoy/releases/download/v1.1.05/ventoy-1.1.05-windows.zip"; Exe = "Ventoy2Disk.exe" },
+    @{ Name = "HiBit Uninstaller"; Url = "https://www.hibitsoft.ir/HiBitUninstaller/HiBitUninstaller-Portable.zip"; Exe = "HiBitUninstaller.exe" },
     @{ Name = "CPU-Z"; Url = "https://download.cpuid.com/cpu-z/cpu-z_2-en.zip"; Exe = "cpuz_x64.exe" },
     @{ Name = "GPU-Z"; Url = "https://www.techpowerup.com/download/gpu-z/"; Exe = "GPU-Z.exe" },
     @{ Name = "CrystalDiskInfo"; Url = "https://crystalmark.info/download/CrystalDiskInfo.zip"; Exe = "DiskInfo64.exe" },

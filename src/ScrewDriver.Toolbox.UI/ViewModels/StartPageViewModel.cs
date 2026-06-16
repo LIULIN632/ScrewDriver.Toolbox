@@ -13,12 +13,6 @@ namespace ScrewDriver.Toolbox.UI.ViewModels;
 
 public class StartPageViewModel : BaseViewModel
 {
-    // 启动页白名单：只显示以下工具
-    private static readonly HashSet<string> StartPageWhitelist = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "Everything", "Dism++", "DirectX 修复工具"
-    };
-
     private string _searchText = string.Empty;
     private string _selectedCategory = "全部";
     private string _windowsVersion = string.Empty;
@@ -94,8 +88,7 @@ public class StartPageViewModel : BaseViewModel
         FilteredTools.Clear();
         IEnumerable<ToolItem> all = InstalledToolsCache.Instance.InstalledTools;
 
-        // 启动页只显示白名单工具，其他页面不受影响
-        all = all.Where(t => StartPageWhitelist.Contains(t.Name));
+        // 启动页显示所有已安装工具（InstalledToolsCache 已过滤）
 
         if (!string.IsNullOrEmpty(SearchText))
             all = all.Where(t =>
