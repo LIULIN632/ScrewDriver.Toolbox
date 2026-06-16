@@ -105,6 +105,24 @@ public class InstalledToolsCache
             var allTools = ToolRegistry.GetAllTools();
             allTools.AddRange(ToolRegistry.GetCustomTools());
 
+            // 扫描 Tools 目录，匹配到对应工具
+            var toolsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Tools");
+            if (Directory.Exists(toolsDir))
+            {
+                foreach (var tool in allTools)
+                {
+                    if (string.IsNullOrEmpty(tool.LocalExePath))
+                    {
+                        // 按工具名匹配 Tools 目录下的 exe
+                        var exeName = tool.Name.Replace(" ", "").Replace("-", "") + ".exe";
+                        var found = Directory.GetFiles(toolsDir, $"*{tool.Name}*", SearchOption.AllDirectories)
+                            .FirstOrDefault(f => f.EndsWith(".exe", StringComparison.OrdinalIgnoreCase));
+                        if (found != null)
+                            tool.LocalExePath = found;
+                    }
+                }
+            }
+
             var launchable = allTools
                 .Where(IsToolLaunchable)
                 .Select(t => { t.IsPinned = IsPinned(t.Name); return t; })
