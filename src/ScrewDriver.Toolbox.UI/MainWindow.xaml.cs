@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
+using ScrewDriver.Toolbox.Core.Models;
 using ScrewDriver.Toolbox.Core.Services;
 using ScrewDriver.Toolbox.UI.Services;
 using ScrewDriver.Toolbox.UI.Views;
@@ -18,6 +19,7 @@ public partial class MainWindow : Window
     private bool _categoryExpanded;
     private string _activeNavTag = "StartPage";
     private string? _activeCategory;
+    private readonly JsonConfigManager _config = new(AppDomain.CurrentDomain.BaseDirectory);
 
     [DllImport("dwmapi.dll")]
     private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
@@ -27,6 +29,10 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        // 恢复上次窗口位置和大小
+        RestoreWindowState();
+
         MainFrame.Navigate(new StartPage());
 
         SourceInitialized += (_, _) =>
@@ -77,8 +83,43 @@ public partial class MainWindow : Window
 
     protected override void OnClosing(CancelEventArgs e)
     {
+        // 保存窗口位置和大小
+        SaveWindowState();
         _trayIconManager?.Dispose();
         base.OnClosing(e);
+    }
+
+    private void RestoreWindowState()
+    {
+        var state = _config.Load<WindowStateModel>("window-state");
+        if (state == null) return;
+
+        if (state.Width > 0) Width = state.Width;
+        if (state.Height > 0) Height = state.Height;
+
+        SourceInitialized += (_, _) =>
+        {
+            if (state.Left >= 0 && state.Top >= 0)
+            {
+                Left = state.Left;
+                Top = state.Top;
+            }
+            if (Enum.TryParse<System.Windows.WindowState>(state.State, out var ws))
+                WindowState = ws;
+        };
+    }
+
+    private void SaveWindowState()
+    {
+        var state = new WindowStateModel
+        {
+            Left = Left,
+            Top = Top,
+            Width = Width,
+            Height = Height,
+            State = WindowState.ToString()
+        };
+        _config.Save("window-state", state);
     }
 
     private void ShowWindow()

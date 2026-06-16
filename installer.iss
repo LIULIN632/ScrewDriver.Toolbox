@@ -28,16 +28,13 @@ PrivilegesRequired=admin
 DisableProgramGroupPage=yes
 
 [Languages]
-Name: "chinesesimplified"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 
 [Files]
-Source: "publish_new\ScrewDriver.Toolbox.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "publish_new\*.dll"; DestDir: "{app}"; Flags: ignoreversion
-Source: "publish_new\*.json"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\release\ScrewDriver.Toolbox.exe"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"

@@ -17,7 +17,7 @@ Write-Host ""
 
 # 0. Kill old process to avoid file lock
 Write-Host "[0/4] Killing old process..." -ForegroundColor Yellow
-Get-Process -Name "ScrewDriver.Toolbox" -ErrorAction SilentlyContinue | Stop-Process -Force
+Get-Process -Name "ScrewDriver.Toolbox" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
 Start-Sleep -Seconds 1
 
 # 1. Clean
@@ -67,9 +67,15 @@ Write-Host "ZIP size: $([math]::Round($zipSize, 1)) MB" -ForegroundColor Gray
 # 4. Installer (optional, requires Inno Setup)
 if ($Installer) {
     Write-Host "[4/4] Building installer..." -ForegroundColor Yellow
-    $isccPath = "$env:ProgramFiles\Inno Setup 6\ISCC.exe"
-    if (-not (Test-Path $isccPath)) {
-        $isccPath = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+    $isccPaths = @(
+        "$env:ProgramFiles\Inno Setup 7\ISCC.exe",
+        "${env:ProgramFiles(x86)}\Inno Setup 7\ISCC.exe",
+        "$env:ProgramFiles\Inno Setup 6\ISCC.exe",
+        "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+    )
+    $isccPath = $null
+    foreach ($p in $isccPaths) {
+        if (Test-Path $p) { $isccPath = $p; break }
     }
     if (Test-Path $isccPath) {
         & $isccPath "$RootDir\installer.iss"

@@ -17,6 +17,7 @@ public class RepairCenterViewModel : BaseViewModel
 
     public RelayCommand ExecuteRepairCommand { get; }
     public RelayCommand LaunchToolCommand { get; }
+    public RelayCommand DetectCommand { get; }
 
     private static readonly HashSet<string> _repairCategories = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -31,6 +32,12 @@ public class RepairCenterViewModel : BaseViewModel
             Scenarios.Add(s);
 
         RefreshInstalledTools();
+
+        DetectCommand = new RelayCommand(async param =>
+        {
+            if (param is RepairScenario scenario)
+                await DetectAsync(scenario);
+        });
 
         ExecuteRepairCommand = new RelayCommand(param =>
         {
@@ -105,6 +112,41 @@ public class RepairCenterViewModel : BaseViewModel
             InstalledTools.Add(t);
     }
 
+    private static async Task DetectAsync(RepairScenario scenario)
+    {
+        scenario.Status = "检测中...";
+        scenario.StatusColor = "#2563EB";
+
+        var hasIssue = false;
+        foreach (var cmd in scenario.DetectCommands)
+        {
+            try
+            {
+                var psi = new ProcessStartInfo("cmd.exe", $"/c {cmd}")
+                {
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+                var p = Process.Start(psi);
+                if (p != null)
+                {
+                    var output = await p.StandardOutput.ReadToEndAsync();
+                    await p.WaitForExitAsync();
+                    if (!string.IsNullOrWhiteSpace(output))
+                    {
+                        hasIssue = true;
+                        break;
+                    }
+                }
+            }
+            catch { }
+        }
+
+        scenario.Status = hasIssue ? "检测到问题" : "一切正常";
+        scenario.StatusColor = hasIssue ? "#DC2626" : "#22C55E";
+    }
+
     private static List<RepairScenario> BuildScenarios() => new()
     {
         new()
@@ -112,6 +154,7 @@ public class RepairCenterViewModel : BaseViewModel
             Name = "网络异常",
             Cause = "DNS 缓存过期或网络协议栈异常",
             Description = "刷新 DNS 缓存并重置网络协议栈",
+            DetectCommands = new List<string> { "ping -n 1 223.5.5.5 | findstr TTL || echo 网络不通" },
             Commands = new List<string> { "ipconfig /flushdns", "netsh winsock reset" }
         },
         new()
@@ -119,6 +162,7 @@ public class RepairCenterViewModel : BaseViewModel
             Name = "系统卡顿",
             Cause = "临时文件堆积或磁盘空间不足",
             Description = "打开磁盘清理工具和临时文件夹",
+            DetectCommands = new List<string> { "wmic logicaldisk where size>0 get deviceid,freespace,size | findstr /i c:" },
             Commands = new List<string> { "start cleanmgr.exe", "start %temp%" }
         },
         new()
@@ -126,13 +170,15 @@ public class RepairCenterViewModel : BaseViewModel
             Name = "蓝屏分析",
             Cause = "驱动冲突或硬件故障",
             Description = "打开事件查看器排查系统错误日志",
+            DetectCommands = new List<string> { "wevtutil qe System /c:1 /f:text /q:\"*[System[Level=2]]\" | findstr . || echo 无严重错误" },
             Commands = new List<string> { "start eventvwr.msc" }
         },
         new()
         {
             Name = "更新失败",
             Cause = "Windows Update 缓存异常",
-            Description = "重置 Windows Update 授权和缓存",
+            Description = "重置 Windows Update 服务和缓存",
+            DetectCommands = new List<string> { "sc query wuauserv | findstr RUNNING || echo 服务未运行" },
             Commands = new List<string> { "net stop wuauserv", "net start wuauserv" }
         },
         new()
@@ -140,6 +186,7 @@ public class RepairCenterViewModel : BaseViewModel
             Name = "游戏掉线",
             Cause = "DNS 解析延迟或网络协议栈异常",
             Description = "刷新 DNS 缓存并重置网络协议栈，切换高性能电源计划",
+            DetectCommands = new List<string> { "ping -n 2 223.5.5.5 | findstr 平均", "ping -n 2 180.76.76.76 | findstr 平均" },
             Commands = new List<string> { "ipconfig /flushdns", "netsh winsock reset", "netsh int ip reset", "powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c" }
         },
         new()
@@ -147,6 +194,7 @@ public class RepairCenterViewModel : BaseViewModel
             Name = "软件打不开",
             Cause = "文件关联错误或默认程序设置异常",
             Description = "打开默认程序设置面板",
+            DetectCommands = new List<string> { "assoc .txt | findstr txtfile || echo 文件关联异常" },
             Commands = new List<string> { "start control /name Microsoft.DefaultPrograms" }
         }
     };
