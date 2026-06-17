@@ -45,7 +45,7 @@ public class ToolRepositoryViewModel : BaseViewModel
         "安全工具", "联想工具", "华硕工具", "惠普工具", "戴尔工具",
         "微星工具", "机械革命", "通用工具", "启动与镜像",
         "游戏工具", "烤鸡工具", "音视频播放器", "音视频处理工具",
-        "图像与设计工具", "综合检测", "其他工具"
+        "图像与设计工具", "其他工具"
     };
 
     public string SearchText

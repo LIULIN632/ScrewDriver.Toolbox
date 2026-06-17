@@ -26,7 +26,7 @@ public class RepairCenterViewModel : BaseViewModel
         "联想工具", "华硕工具", "惠普工具", "戴尔工具",
         "微星工具", "机械革命", "通用工具",
         "游戏工具", "烤鸡工具", "音视频播放器", "音视频处理工具",
-        "图像与设计工具", "综合检测"
+        "图像与设计工具"
     };
 
     public RepairCenterViewModel()
