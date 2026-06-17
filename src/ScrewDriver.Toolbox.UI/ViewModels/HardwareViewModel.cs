@@ -89,11 +89,36 @@ public class HardwareViewModel : BaseViewModel
         OnPropertyChanged(nameof(Uptime));
 
         HardwareItems.Clear();
+
         foreach (var module in modules)
         {
             if (module.Items.Count == 0) continue;
-            HardwareItems.Add(new HardwareDetailItem { Label = module.ModuleName, Value = "", IsHeader = true });
+
+            // 取最重要的字段精简展示
+            var important = new List<HardwareDetailItem>();
             foreach (var item in module.Items)
+            {
+                // 只保留关键信息：型号/容量/频率/核心数/分辨率等
+                if (item.Label.Contains("型号") || item.Label.Contains("总容量") ||
+                    item.Label.Contains("核心") || item.Label.Contains("频率") ||
+                    item.Label.Contains("分辨率") || item.Label.Contains("显存") ||
+                    item.Label.Contains("可用空间") || item.Label.Contains("制造商") ||
+                    item.Label == "BIOS 版本" || item.Label == "MAC 地址" ||
+                    item.Label == "声卡" || item.Label == "网卡")
+                {
+                    important.Add(item);
+                }
+            }
+            // 如果一个都没匹配到，取第一条
+            if (important.Count == 0 && module.Items.Count > 0)
+                important.Add(module.Items[0]);
+
+            // 最多显示 3 行
+            if (important.Count > 3)
+                important = important.Take(3).ToList();
+
+            HardwareItems.Add(new HardwareDetailItem { Label = module.ModuleName, Value = "", IsHeader = true });
+            foreach (var item in important)
                 HardwareItems.Add(item);
         }
 
