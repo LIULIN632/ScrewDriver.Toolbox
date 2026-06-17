@@ -83,7 +83,7 @@
                                 Background="Transparent" Tag="ScenariosPage"
                                 Style="{StaticResource NavItemHover}"
                                 MouseLeftButtonDown="NavItem_Click">
-                            <TextBlock Text="场景方案" FontSize="14" VerticalAlignment="Center"/>
+                            <TextBlock Text="内置工具" FontSize="14" VerticalAlignment="Center"/>
                         </Border>
                         <Border Padding="16,0" Height="48" Cursor="Hand"
                                 Background="Transparent" Tag="SettingsPage"
