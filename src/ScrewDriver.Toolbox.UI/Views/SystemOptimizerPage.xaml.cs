@@ -20,8 +20,10 @@ public partial class SystemOptimizerPage : Page
         if (DataContext is not SystemOptimizerViewModel vm) return;
 
         var enable = setting.IsEnabled;
+        var action = enable ? "开启" : "关闭";
 
-        if (enable && setting.RiskLevel == RiskLevel.Dangerous)
+        // 普通操作也先确认
+        if (setting.RiskLevel == RiskLevel.Dangerous)
         {
             setting.IsEnabled = false;
 
@@ -33,6 +35,18 @@ public partial class SystemOptimizerPage : Page
                 return;
 
             setting.IsEnabled = true;
+        }
+        else
+        {
+            var result = MessageBox.Show(
+                $"确定要{action}「{setting.Name}」吗？",
+                "确认操作", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes)
+            {
+                setting.IsEnabled = !enable;
+                return;
+            }
         }
 
         if (!vm.ApplySetting(setting.Id, enable))
