@@ -158,13 +158,17 @@
                                                                    Foreground="{DynamicResource TextSecondaryBrush}"
                                                                    TextWrapping="Wrap" Margin="0,4,0,0"/>
                                                     </StackPanel>
-                                                    <!-- 右侧：ToggleSwitch -->
-                                                    <CheckBox Grid.Column="1"
-                                                              IsChecked="{Binding IsEnabled}"
-                                                              Style="{StaticResource ToggleSwitchStyle}"
-                                                              VerticalAlignment="Center"
-                                                              Margin="16,0,0,0"
-                                                              Click="SettingCheckBox_Click"/>
+                                                    <!-- 右侧：状态 + ToggleSwitch -->
+                                                    <StackPanel Grid.Column="1" Orientation="Horizontal"
+                                                                VerticalAlignment="Center" Margin="16,0,0,0">
+                                                        <TextBlock Text="{Binding StatusText}" FontSize="11"
+                                                                   Foreground="{Binding StatusColor}"
+                                                                   VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                                        <CheckBox IsChecked="{Binding IsEnabled}"
+                                                                  Style="{StaticResource ToggleSwitchStyle}"
+                                                                  VerticalAlignment="Center"
+                                                                  Click="SettingCheckBox_Click"/>
+                                                    </StackPanel>
                                                 </Grid>
                                             </Border>
                                         </DataTemplate>

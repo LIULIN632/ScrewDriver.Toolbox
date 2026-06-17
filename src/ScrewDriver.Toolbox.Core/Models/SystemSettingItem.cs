@@ -24,6 +24,8 @@ public class SystemSettingItem : IRiskOperation
     public string Description { get; set; } = string.Empty;
     public string Category { get; set; } = string.Empty;
     public bool IsEnabled { get; set; }
+    public string StatusText => IsEnabled ? "已开启" : "已关闭";
+    public string StatusColor => IsEnabled ? "#22C55E" : "#999999";
     public string RiskDescription { get; set; } = string.Empty;
     public RiskLevel RiskLevel { get; set; }
     public RecommendedAction Recommendation { get; set; }
