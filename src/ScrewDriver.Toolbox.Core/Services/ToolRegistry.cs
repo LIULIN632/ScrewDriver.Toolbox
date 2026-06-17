@@ -13,7 +13,7 @@ public static class ToolRegistry
         "系统工具", "CPU工具", "主板工具", "内存工具",
         "显卡工具", "硬盘工具", "屏幕工具", "外设工具",
         "安全工具", "联想工具", "华硕工具", "惠普工具", "戴尔工具", "微星工具", "机械革命", "通用工具", "启动与镜像",
-        "游戏工具", "烤鸡工具", "综合检测", "其他工具"
+        "游戏工具", "烤鸡工具", "音视频播放器", "音视频处理工具", "图像与设计工具", "综合检测", "其他工具"
     };
 
     public static List<ToolItem> GetAllTools()
@@ -31,6 +31,9 @@ public static class ToolRegistry
             AddOtherTools();
             AddGameTools();
             AddBenchTools();
+            AddMediaTools();
+            AddMediaProcessTools();
+            AddDesignTools();
         }
         var all = new List<ToolItem>(_allTools);
         all.AddRange(GetCustomTools());
@@ -273,6 +276,10 @@ public static class ToolRegistry
             Description = "SSD 基准测试与安全擦除，支持 NVMe 驱动级测试，日本老牌工具",
             OfficialUrl = "https://www.texim.jp/txbenchus.html",
             WingetId = "", RiskLevel = "安全" },
+        new() { Name = "SpaceSniffer", Category = "硬盘工具",
+            Description = "可视化磁盘空间分析，区块图展示文件和文件夹大小",
+            OfficialUrl = "https://www.uderzo.it/main_products/space_sniffer/",
+            WingetId = "Uderzo.SpaceSniffer", RiskLevel = "安全" },
         new() { Name = "Defraggler", Category = "硬盘工具",
             Description = "磁盘碎片整理工具，支持单个文件或整个磁盘快速整理",
             OfficialUrl = "https://www.ccleaner.com/defraggler",
@@ -405,6 +412,10 @@ public static class ToolRegistry
             Description = "光盘映像编辑/转换/刻录，制作/编辑 ISO 文件，U 盘启动盘写入",
             OfficialUrl = "https://www.ultraiso.com/",
             WingetId = "", RiskLevel = "安全" },
+        new() { Name = "PixPin", Category = "其他工具",
+            Description = "截图/贴图/OCR/长截图/标记，国产效率工具",
+            OfficialUrl = "https://pixpin.cn/",
+            WingetId = "PixPin.PixPin", RiskLevel = "推荐" },
         new() { Name = "Snipaste", Category = "其他工具",
             Description = "截图 + 贴图工具，支持像素级截图取色和屏幕贴图，设计师效率利器",
             OfficialUrl = "https://www.snipaste.com/",
@@ -463,4 +474,67 @@ public static class ToolRegistry
             Description = "单文件 CPU 满载测试工具，快速检测散热和稳定性",
             OfficialUrl = "https://www.softpedia.com/get/System/Benchmarks/CPU-Burner.shtml", RiskLevel = "注意" }
     });
+
+    // ============================================================
+    // 音视频播放器
+    // ============================================================
+    private static void AddMediaTools() => _allTools!.AddRange(new List<ToolItem>
+    {
+        new() { Name = "VLC", Category = "音视频播放器",
+            Description = "开源跨平台多媒体播放器，支持几乎所有音视频格式",
+            OfficialUrl = "https://www.videolan.org/vlc/",
+            WingetId = "VideoLAN.VLC", RiskLevel = "推荐" },
+        new() { Name = "MPC-BE", Category = "音视频播放器",
+            Description = "轻量视频播放器，基于MPC-HC，解码能力强",
+            OfficialUrl = "https://mpc-be.org/",
+            WingetId = "MPC-BE.MPC-BE", RiskLevel = "推荐" },
+        new() { Name = "PotPlayer", Category = "音视频播放器",
+            Description = "全能视频播放器，解码能力强、功能丰富、启动快",
+            OfficialUrl = "https://potplayer.daum.net/",
+            WingetId = "Daum.PotPlayer", RiskLevel = "推荐" }
+    });
+
+    // ============================================================
+    // 音视频处理工具
+    // ============================================================
+    private static void AddMediaProcessTools() => _allTools!.AddRange(new List<ToolItem>
+    {
+        new() { Name = "FFmpeg", Category = "音视频处理工具",
+            Description = "开源音视频处理工具，支持格式转换/录制/流处理",
+            OfficialUrl = "https://ffmpeg.org/",
+            WingetId = "Gyan.FFmpeg", RiskLevel = "安全" },
+        new() { Name = "HandBrake", Category = "音视频处理工具",
+            Description = "开源视频转码工具，支持批量转换和预设优化",
+            OfficialUrl = "https://handbrake.fr/",
+            WingetId = "HandBrake.HandBrake", RiskLevel = "推荐" },
+        new() { Name = "Mp3tag", Category = "音视频处理工具",
+            Description = "音乐文件标签编辑工具，批量修改ID3标签",
+            OfficialUrl = "https://www.mp3tag.de/en/",
+            WingetId = "Mp3tag.Mp3tag", RiskLevel = "推荐" },
+        new() { Name = "File Converter", Category = "音视频处理工具",
+            Description = "右键菜单文件格式转换，支持音视频/图片",
+            GithubUrl = "https://github.com/Tichau/FileConverter",
+            OfficialUrl = "https://file-converter.org/",
+            WingetId = "Tichau.FileConverter", RiskLevel = "安全" }
+    });
+
+    // ============================================================
+    // 图像与设计工具
+    // ============================================================
+    private static void AddDesignTools() => _allTools!.AddRange(new List<ToolItem>
+    {
+        new() { Name = "Honeyview", Category = "图像与设计工具",
+            Description = "极速图片查看器，支持RAW/PSD/漫画格式",
+            OfficialUrl = "https://www.bandisoft.com/honeyview/",
+            WingetId = "Bandisoft.Honeyview", RiskLevel = "推荐" },
+        new() { Name = "Blender", Category = "图像与设计工具",
+            Description = "开源3D建模/动画/渲染/视频编辑全套工具",
+            OfficialUrl = "https://www.blender.org/",
+            WingetId = "BlenderFoundation.Blender", RiskLevel = "推荐" },
+        new() { Name = "Krita", Category = "图像与设计工具",
+            Description = "开源数字绘画软件，支持笔刷/图层/动画",
+            OfficialUrl = "https://krita.org/",
+            WingetId = "KritaFoundation.Krita", RiskLevel = "推荐" }
+    });
+
 }
