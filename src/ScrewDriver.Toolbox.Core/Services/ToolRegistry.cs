@@ -13,7 +13,7 @@ public static class ToolRegistry
         "系统工具", "CPU工具", "主板工具", "内存工具",
         "显卡工具", "硬盘工具", "屏幕工具", "外设工具",
         "安全工具", "联想工具", "华硕工具", "惠普工具", "戴尔工具", "微星工具", "机械革命", "通用工具", "启动与镜像",
-        "游戏工具", "烤鸡工具", "音视频播放器", "音视频处理工具", "图像与设计工具", "其他工具"
+        "游戏工具", "烤机工具", "音视频播放器", "音视频处理工具", "图像与设计工具", "其他工具"
     };
 
     public static List<ToolItem> GetAllTools()
@@ -67,7 +67,7 @@ public static class ToolRegistry
     }
 
     // ============================================================
-    // 1. 系统工具 (15)
+    // 1. 系统工具 (18)
     // ============================================================
     private static void AddSystemTools() => _allTools!.AddRange(new List<ToolItem>
     {
@@ -131,7 +131,7 @@ public static class ToolRegistry
             GithubUrl = "https://github.com/QL-Win/QuickLook",
             OfficialUrl = "https://github.com/QL-Win/QuickLook",
             WingetId = "QL-Win.QuickLook", RiskLevel = "安全" },
-        new() { Name = "MPV", Category = "系统工具",
+        new() { Name = "MPV", Category = "音视频播放器",
             Description = "轻量开源视频播放器，GPU 渲染、低延迟、高自定义",
             OfficialUrl = "https://mpv.io/",
             WingetId = "shinchiro.mpv", RiskLevel = "安全" },
@@ -146,7 +146,7 @@ public static class ToolRegistry
     });
 
     // ============================================================
-    // 2. 安全与优化 (9)
+    // 2. 安全工具 (7)
     // ============================================================
     private static void AddSecurityTools() => _allTools!.AddRange(new List<ToolItem>
     {
@@ -202,7 +202,7 @@ public static class ToolRegistry
     });
 
     // ============================================================
-    // 4. 硬件检测 (12)
+    // 4. 主板/硬件 (13)
     // ============================================================
     private static void AddHardwareDetection() => _allTools!.AddRange(new List<ToolItem>
     {
@@ -409,7 +409,7 @@ public static class ToolRegistry
     });
 
     // ============================================================
-    // 8. 其他工具 (6)
+    // 8. 其他工具 (8)
     // ============================================================
     private static void AddOtherTools() => _allTools!.AddRange(new List<ToolItem>
     {
@@ -467,23 +467,23 @@ public static class ToolRegistry
     });
 
     // ============================================================
-    // 10. 烤鸡工具 (4)
+    // 10. 烤机工具 (4)
     // ============================================================
     private static void AddBenchTools() => _allTools!.AddRange(new List<ToolItem>
     {
-        new() { Name = "FurMark", Category = "烤鸡工具",
+        new() { Name = "FurMark", Category = "烤机工具",
             Description = "显卡压力测试与温度检测，俗称甜甜圈，验证散热与稳定性",
             OfficialUrl = "https://geeks3d.com/furmark/",
             WingetId = "Geeks3D.FurMark", RiskLevel = "注意" },
-        new() { Name = "Prime95", Category = "烤鸡工具",
+        new() { Name = "Prime95", Category = "烤机工具",
             Description = "CPU 压力测试与稳定性验证，超频后必测，支持 AVX 指令集",
             OfficialUrl = "https://www.mersenne.org/download/",
             WingetId = "GIMPS.Prime95", RiskLevel = "注意" },
-        new() { Name = "LinX", Category = "烤鸡工具",
+        new() { Name = "LinX", Category = "烤机工具",
             Description = "Intel Linpack 前端，CPU 极限压力测试",
             OfficialUrl = "https://www.techpowerup.com/download/linx/",
             GithubUrl = "https://github.com/Mysticial/NumberFactory", RiskLevel = "注意" },
-        new() { Name = "CPU Burner", Category = "烤鸡工具",
+        new() { Name = "CPU Burner", Category = "烤机工具",
             Description = "单文件 CPU 满载测试工具，快速检测散热和稳定性",
             OfficialUrl = "https://www.softpedia.com/get/System/Benchmarks/CPU-Burner.shtml", RiskLevel = "注意" }
     });

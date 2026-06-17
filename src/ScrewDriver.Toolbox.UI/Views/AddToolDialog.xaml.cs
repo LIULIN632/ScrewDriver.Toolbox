@@ -10,7 +10,7 @@ public partial class AddToolDialog : Window
 {
     public string ToolName { get; private set; }
     public string ToolPath { get; }
-    public string SelectedCategory { get; private set; } = "效率工具";
+    public string SelectedCategory { get; private set; } = "其他工具";
 
     public AddToolDialog(string exePath, List<string> categories)
     {
@@ -22,7 +22,7 @@ public partial class AddToolDialog : Window
         ToolName = NameBox.Text;
 
         CategoryCombo.ItemsSource = categories;
-        CategoryCombo.SelectedItem = "效率工具";
+        CategoryCombo.SelectedItem = "其他工具";
 
         NameBox.Focus();
         NameBox.SelectAll();
@@ -45,7 +45,7 @@ public partial class AddToolDialog : Window
 
         ToolName = name;
         SelectedCategory = (CategoryCombo.SelectedItem as string) ??
-                           CategoryCombo.Text?.Trim() ?? "效率工具";
+                           CategoryCombo.Text?.Trim() ?? "其他工具";
         DialogResult = true;
         Close();
     }
