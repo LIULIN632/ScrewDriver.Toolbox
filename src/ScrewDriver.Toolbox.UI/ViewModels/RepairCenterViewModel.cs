@@ -42,9 +42,21 @@ public class RepairCenterViewModel : BaseViewModel
                 await DetectAsync(scenario);
         });
 
-        ExecuteRepairCommand = new RelayCommand(param =>
+        ExecuteRepairCommand = new RelayCommand(async param =>
         {
             if (param is not RepairScenario scenario) return;
+
+            // 点击修复时先检测
+            if (scenario.Status != "检测到问题")
+            {
+                await DetectAsync(scenario);
+                if (scenario.Status != "检测到问题")
+                {
+                    MessageBox.Show("当前未发现问题，无需修复。", "无需修复",
+                        MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+            }
 
             var result = MessageBox.Show(
                 $"即将执行「{scenario.Name}」修复方案，共 {scenario.Commands.Count} 个步骤。\n\n确定继续？",
