@@ -15,17 +15,11 @@ namespace ScrewDriver.Toolbox.UI.Views;
 
 public partial class StartPage : Page
 {
+    private ToolItem? _contextTool;
+
     public StartPage()
     {
         InitializeComponent();
-    }
-
-    private void PinButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is not Button { Tag: string name }) return;
-        if (DataContext is not StartPageViewModel vm) return;
-        vm.TogglePinCommand.Execute(name);
-        e.Handled = true;
     }
 
     private void ToolIcon_Click(object sender, MouseButtonEventArgs e)
@@ -51,5 +45,45 @@ public partial class StartPage : Page
             MessageBox.Show($"工具文件缺失\n\n{tool.Name} 的程序文件未找到。",
                 "启动失败", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
+    }
+
+    private void ToolContextMenu_Opening(object sender, ContextMenuEventArgs e)
+    {
+        if (sender is Border border)
+            _contextTool = border.DataContext as ToolItem;
+    }
+
+    private void MenuOpen_Click(object sender, RoutedEventArgs e)
+    {
+        if (_contextTool == null) return;
+        string? path = _contextTool.LocalExePath ?? _contextTool.LaunchPath;
+        if (!string.IsNullOrEmpty(path) && File.Exists(path))
+        {
+            try { Process.Start(new ProcessStartInfo(path) { UseShellExecute = true }); }
+            catch { }
+        }
+    }
+
+    private void MenuOpenLocation_Click(object sender, RoutedEventArgs e)
+    {
+        if (_contextTool == null) return;
+        string? path = _contextTool.LocalExePath ?? _contextTool.LaunchPath;
+        if (!string.IsNullOrEmpty(path))
+        {
+            try
+            {
+                var dir = Path.GetDirectoryName(path);
+                if (Directory.Exists(dir))
+                    Process.Start("explorer.exe", $"/select,\"{path}\"");
+            }
+            catch { }
+        }
+    }
+
+    private void MenuRemove_Click(object sender, RoutedEventArgs e)
+    {
+        if (_contextTool == null) return;
+        if (DataContext is StartPageViewModel vm)
+            vm.RemoveToolCommand?.Execute(_contextTool.Name);
     }
 }

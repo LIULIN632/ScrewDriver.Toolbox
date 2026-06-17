@@ -26,7 +26,15 @@
                     <DataTemplate>
                         <Border Style="{StaticResource ToolIconStyle}" Margin="4"
                                 MouseLeftButtonDown="ToolIcon_Click"
-                                ToolTipService.ShowDuration="5000">
+                                ContextMenuOpening="ToolContextMenu_Opening">
+                            <Border.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="打开" Click="MenuOpen_Click"/>
+                                    <MenuItem Header="打开文件位置" Click="MenuOpenLocation_Click"/>
+                                    <Separator/>
+                                    <MenuItem Header="从列表移除" Click="MenuRemove_Click"/>
+                                </ContextMenu>
+                            </Border.ContextMenu>
                             <Border.ToolTip>
                                 <ToolTip>
                                     <StackPanel MaxWidth="200">
@@ -41,10 +49,14 @@
                             <Grid Width="96" Height="96"
                                   HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                                    <Image Source="{Binding IconPath,
-                                            Converter={StaticResource IconPathConverter}}"
-                                           Width="48" Height="48"
-                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Grid Width="48" Height="48">
+                                        <TextBlock Text="📦" FontSize="28"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <Image Source="{Binding IconPath,
+                                                Converter={StaticResource IconPathConverter}}"
+                                               Width="48" Height="48"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Grid>
                                     <TextBlock Text="{Binding Name}" FontSize="12"
                                                Foreground="{DynamicResource TextPrimaryBrush}"
                                                HorizontalAlignment="Center"
@@ -53,31 +65,6 @@
                                                Margin="0,6,0,0"
                                                TextAlignment="Center"/>
                                 </StackPanel>
-                                <!-- 图钉按钮 -->
-                                <Button Content="📌" Width="22" Height="22"
-                                        FontSize="10" Padding="0"
-                                        Background="Transparent" BorderThickness="0"
-                                        Cursor="Hand" Opacity="0.4"
-                                        HorizontalAlignment="Right" VerticalAlignment="Top"
-                                        Margin="0,2,2,0"
-                                        Click="PinButton_Click"
-                                        Tag="{Binding Name}">
-                                    <Button.Style>
-                                        <Style TargetType="Button">
-                                            <Setter Property="Background" Value="Transparent"/>
-                                            <Setter Property="BorderThickness" Value="0"/>
-                                            <Setter Property="Opacity" Value="0.3"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsPinned}" Value="True">
-                                                    <Setter Property="Opacity" Value="1"/>
-                                                </DataTrigger>
-                                                <Trigger Property="IsMouseOver" Value="True">
-                                                    <Setter Property="Opacity" Value="0.9"/>
-                                                </Trigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Button.Style>
-                                </Button>
                             </Grid>
                         </Border>
                     </DataTemplate>

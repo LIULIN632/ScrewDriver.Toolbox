@@ -56,6 +56,9 @@ public class StartPageViewModel : BaseViewModel
     public ICommand LaunchToolCommand { get; }
     public ICommand ClearSearchCommand { get; }
     public ICommand TogglePinCommand { get; }
+    public ICommand RemoveToolCommand { get; }
+
+    private readonly HashSet<string> _hiddenTools = new();
 
     public StartPageViewModel()
     {
@@ -72,6 +75,15 @@ public class StartPageViewModel : BaseViewModel
         {
             if (param is not string name) return;
             InstalledToolsCache.Instance.TogglePin(name);
+        });
+
+        RemoveToolCommand = new RelayCommand(param =>
+        {
+            if (param is string name)
+            {
+                _hiddenTools.Add(name);
+                RefreshFromCache();
+            }
         });
 
         InstalledToolsCache.Instance.CacheUpdated += OnCacheUpdated;
@@ -91,8 +103,8 @@ public class StartPageViewModel : BaseViewModel
         all.AddRange(InstalledToolsCache.Instance.InstalledTools);
         all.AddRange(InstalledToolsCache.Instance.ToolsFolderTools);
 
-        // 启动页显示所有已安装工具 + Tools 工具
-        IEnumerable<ToolItem> filtered = all;
+        // 启动页显示所有已安装工具 + Tools 工具（排除已隐藏的）
+        IEnumerable<ToolItem> filtered = all.Where(t => !_hiddenTools.Contains(t.Name));
 
         if (!string.IsNullOrEmpty(SearchText))
             filtered = filtered.Where(t =>
