@@ -9,6 +9,7 @@
             <conv:RecommendationToVisibilityConverter x:Key="RecToVis"/>
             <conv:StringToVisibilityConverter x:Key="StrToVis"/>
             <conv:IconPathConverter x:Key="IconPathConverter"/>
+            <conv:ExeIconConverter x:Key="ExeIconConverter"/>
             <!-- 品牌色 - Developer Tool 风格 -->
             <SolidColorBrush x:Key="PrimaryBrush" Color="#2563EB"/>
             <SolidColorBrush x:Key="PrimaryLightBrush" Color="#DBEAFE"/>

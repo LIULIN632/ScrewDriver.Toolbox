@@ -50,12 +50,13 @@
                                   HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                                     <Grid Width="48" Height="48">
-                                        <TextBlock Text="📦" FontSize="28"
-                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                        <Image Source="{Binding IconPath,
-                                                Converter={StaticResource IconPathConverter}}"
+                                        <Image Source="{Binding LocalExePath,
+                                                Converter={StaticResource ExeIconConverter}}"
                                                Width="48" Height="48"
                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <TextBlock Text="📦" FontSize="28"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                   IsHitTestVisible="False"/>
                                     </Grid>
                                     <TextBlock Text="{Binding Name}" FontSize="12"
                                                Foreground="{DynamicResource TextPrimaryBrush}"
