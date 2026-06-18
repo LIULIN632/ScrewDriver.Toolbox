@@ -22,8 +22,10 @@ public class SystemSettingItem : IRiskOperation
     public string Id { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
+    public string IconCode { get; set; } = string.Empty;
     public string Category { get; set; } = string.Empty;
     public bool IsEnabled { get; set; }
+    public bool IsDangerous => RiskLevel == RiskLevel.Dangerous;
     public string StatusText => IsEnabled ? "已开启" : "已关闭";
     public string StatusColor => IsEnabled ? "#22C55E" : "#999999";
     public string RiskDescription { get; set; } = string.Empty;
