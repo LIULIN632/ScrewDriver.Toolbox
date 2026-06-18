@@ -39,6 +39,7 @@ dist/
 publish/
 publish_new/
 build_output/
+build_*/
 _publish_*/
 _dist_*/
 _archive/
