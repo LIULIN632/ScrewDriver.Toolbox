@@ -137,6 +137,26 @@ public class SystemOptimizerViewModel : BaseViewModel
         });
         Categories.Add(new OptimizeCategoryItem
         {
+            Title = "任务栏", Description = "自定义任务栏行为和图标",
+            IconCode = "📌", NavigateCommand = new RelayCommand(_ => RunCommand("ms-settings:taskbar"))
+        });
+        Categories.Add(new OptimizeCategoryItem
+        {
+            Title = "桌面", Description = "桌面图标、右键菜单和显示设置",
+            IconCode = "🖥️", NavigateCommand = new RelayCommand(_ => RunCommand("ms-settings:personalization"))
+        });
+        Categories.Add(new OptimizeCategoryItem
+        {
+            Title = "开始菜单", Description = "开始菜单布局、推荐内容设置",
+            IconCode = "🏠", NavigateCommand = new RelayCommand(_ => RunCommand("ms-settings:personalization-start"))
+        });
+        Categories.Add(new OptimizeCategoryItem
+        {
+            Title = "主题", Description = "主题、颜色、壁纸和锁屏背景",
+            IconCode = "🎨", NavigateCommand = new RelayCommand(_ => RunCommand("ms-settings:themes"))
+        });
+        Categories.Add(new OptimizeCategoryItem
+        {
             Title = "系统信息", Description = "查看系统硬件和软件环境详情",
             IconCode = "ℹ️", NavigateCommand = new RelayCommand(_ => RunCommand("msinfo32"))
         });
