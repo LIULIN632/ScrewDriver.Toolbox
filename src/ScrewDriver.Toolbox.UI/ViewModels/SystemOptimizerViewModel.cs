@@ -39,11 +39,17 @@ public class SystemOptimizerViewModel : BaseViewModel
                 PageSubtitle = "优化您的 Windows 系统性能";
                 LoadOptimizeCategories();
             }
-            else
+            else if (nav == "Custom")
             {
                 PageTitle = "自定义";
                 PageSubtitle = "按需开启或关闭系统功能";
                 LoadCustomCategories();
+            }
+            else
+            {
+                PageTitle = "系统设置";
+                PageSubtitle = "常用系统设置快捷入口";
+                LoadSystemSettingsCategories();
             }
         });
 
@@ -89,12 +95,6 @@ public class SystemOptimizerViewModel : BaseViewModel
             IconCode = "🔊",
             NavigateCommand = new RelayCommand(_ => NavigateTo("声音"))
         });
-        Categories.Add(new OptimizeCategoryItem
-        {
-            Title = "系统设置", Description = "系统还原、环境变量、高级系统设置",
-            IconCode = "⚙️",
-            NavigateCommand = new RelayCommand(_ => NavigateTo("系统设置"))
-        });
     }
 
     private void LoadCustomCategories()
@@ -110,6 +110,47 @@ public class SystemOptimizerViewModel : BaseViewModel
             Title = "垃圾清理", Description = "扫描并清理系统临时文件和缓存",
             IconCode = "🧹"
         });
+    }
+
+    private void LoadSystemSettingsCategories()
+    {
+        Categories.Clear();
+        Categories.Add(new OptimizeCategoryItem
+        {
+            Title = "系统还原", Description = "创建或恢复系统还原点",
+            IconCode = "🔄", NavigateCommand = new RelayCommand(_ => RunCommand("systempropertiesprotection"))
+        });
+        Categories.Add(new OptimizeCategoryItem
+        {
+            Title = "环境变量", Description = "编辑系统环境变量",
+            IconCode = "📋", NavigateCommand = new RelayCommand(_ => RunCommand("sysdm.cpl"))
+        });
+        Categories.Add(new OptimizeCategoryItem
+        {
+            Title = "高级系统设置", Description = "性能、用户配置文件、启动和故障恢复",
+            IconCode = "⚙️", NavigateCommand = new RelayCommand(_ => RunCommand("systempropertiesadvanced"))
+        });
+        Categories.Add(new OptimizeCategoryItem
+        {
+            Title = "远程桌面", Description = "配置远程桌面连接",
+            IconCode = "🖥️", NavigateCommand = new RelayCommand(_ => RunCommand("sysdm.cpl"))
+        });
+        Categories.Add(new OptimizeCategoryItem
+        {
+            Title = "系统信息", Description = "查看系统硬件和软件环境详情",
+            IconCode = "ℹ️", NavigateCommand = new RelayCommand(_ => RunCommand("msinfo32"))
+        });
+        Categories.Add(new OptimizeCategoryItem
+        {
+            Title = "设备管理器", Description = "查看和管理硬件设备",
+            IconCode = "🔧", NavigateCommand = new RelayCommand(_ => RunCommand("devmgmt.msc"))
+        });
+    }
+
+    private static void RunCommand(string arg)
+    {
+        try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(arg) { UseShellExecute = true }); }
+        catch { }
     }
 
     private static void NavigateTo(string category)

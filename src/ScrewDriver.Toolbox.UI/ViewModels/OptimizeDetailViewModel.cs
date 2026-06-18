@@ -19,7 +19,6 @@ public class OptimizeDetailViewModel
             case "更新": LoadUpdateSettings(); break;
             case "通知": LoadNotifySettings(); break;
             case "声音": LoadSoundSettings(); break;
-            case "系统设置": LoadSystemSettings(); break;
         }
     }
 

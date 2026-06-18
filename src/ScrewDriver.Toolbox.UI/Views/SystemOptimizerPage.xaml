@@ -70,6 +70,32 @@
                         </ControlTemplate>
                     </RadioButton.Template>
                 </RadioButton>
+
+                <RadioButton GroupName="OptNav" Margin="0,0,0,4"
+                             Command="{Binding SwitchNavCommand}" CommandParameter="System">
+                    <RadioButton.Template>
+                        <ControlTemplate TargetType="RadioButton">
+                            <Border CornerRadius="8" Padding="10,12"
+                                    Background="{TemplateBinding Background}">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="⚙️" FontSize="16" VerticalAlignment="Center"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                    <TextBlock Text="系统设置" FontSize="14"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
+                                               Margin="10,0,0,0" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsChecked" Value="True">
+                                    <Setter Property="Background" Value="{DynamicResource PrimaryLightBrush}"/>
+                                </Trigger>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="{DynamicResource PrimaryLightBrush}"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </RadioButton.Template>
+                </RadioButton>
             </StackPanel>
         </Border>
 
