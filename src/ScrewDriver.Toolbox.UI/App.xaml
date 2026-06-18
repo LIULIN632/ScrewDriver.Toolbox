@@ -247,6 +247,33 @@
                 <Setter Property="CaretBrush" Value="{DynamicResource PrimaryBrush}"/>
             </Style>
 
+            <!-- 优化页分类卡片样式 -->
+            <Style x:Key="OptCardStyle" TargetType="Button">
+                <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="Padding" Value="16,14"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}"
+                                    BorderThickness="{TemplateBinding BorderThickness}"
+                                    CornerRadius="12"
+                                    Padding="{TemplateBinding Padding}">
+                                <ContentPresenter/>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+                <Style.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource PrimaryLightBrush}"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+
             <!-- 暗色滚动条样式 -->
             <Style TargetType="ScrollBar">
                 <Setter Property="Background" Value="Transparent"/>
