@@ -19,6 +19,7 @@ public class OptimizeDetailViewModel
             case "更新": LoadUpdateSettings(); break;
             case "通知": LoadNotifySettings(); break;
             case "声音": LoadSoundSettings(); break;
+            case "系统设置": LoadSystemSettings(); break;
         }
     }
 
@@ -57,5 +58,14 @@ public class OptimizeDetailViewModel
     private void LoadSoundSettings()
     {
         SettingItems.Add(new() { Name = "关闭系统提示音", Description = "关闭开机、操作等所有系统音效", IconCode = "🔇", RiskLevel = RiskLevel.Recommended });
+    }
+
+    private void LoadSystemSettings()
+    {
+        SettingItems.Add(new() { Name = "系统还原", Description = "打开系统还原设置，创建或恢复还原点", IconCode = "🔄", RiskLevel = RiskLevel.Optional });
+        SettingItems.Add(new() { Name = "环境变量", Description = "编辑系统环境变量，配置 PATH 等", IconCode = "📋", RiskLevel = RiskLevel.Optional });
+        SettingItems.Add(new() { Name = "高级系统设置", Description = "性能、用户配置文件、启动和故障恢复", IconCode = "⚙️", RiskLevel = RiskLevel.Optional });
+        SettingItems.Add(new() { Name = "远程桌面", Description = "配置远程桌面连接和远程协助", IconCode = "🖥️", RiskLevel = RiskLevel.Optional });
+        SettingItems.Add(new() { Name = "系统保护", Description = "配置系统保护、磁盘空间管理和还原点", IconCode = "🛡️", RiskLevel = RiskLevel.Optional });
     }
 }

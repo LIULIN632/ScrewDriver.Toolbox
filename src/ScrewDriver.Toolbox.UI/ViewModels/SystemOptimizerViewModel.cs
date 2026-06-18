@@ -89,6 +89,12 @@ public class SystemOptimizerViewModel : BaseViewModel
             IconCode = "🔊",
             NavigateCommand = new RelayCommand(_ => NavigateTo("声音"))
         });
+        Categories.Add(new OptimizeCategoryItem
+        {
+            Title = "系统设置", Description = "系统还原、环境变量、高级系统设置",
+            IconCode = "⚙️",
+            NavigateCommand = new RelayCommand(_ => NavigateTo("系统设置"))
+        });
     }
 
     private void LoadCustomCategories()
