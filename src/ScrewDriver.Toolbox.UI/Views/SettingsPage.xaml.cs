@@ -18,7 +18,7 @@ public partial class SettingsPage : Page
 
     private void GitHubLink_Click(object sender, RoutedEventArgs e)
     {
-        try { Process.Start(new ProcessStartInfo("https://github.com") { UseShellExecute = true }); }
+        try { Process.Start(new ProcessStartInfo("https://github.com/LIULIN632/ScrewDriver.Toolbox") { UseShellExecute = true }); }
         catch { /* setting error */ }
     }
 }

@@ -73,11 +73,13 @@
                     </TextBlock>
                     <TextBlock Text="{Binding Runtime, Mode=OneWay}" FontSize="13"
                                Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                    <TextBlock Text="{Binding ToolCount, Mode=OneWay}" FontSize="13"
+                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
                     <TextBlock Text="参考 DevToys + PowerToys + Windows 11 设计，打造 Windows 用户可信赖的系统工具箱"
                                FontSize="12" Foreground="{DynamicResource TextTertiaryBrush}"
                                Margin="0,6,0,0" TextWrapping="Wrap"/>
                     <TextBlock Margin="0,8,0,0" FontSize="13">
-                        <Hyperlink NavigateUri="https://github.com" Click="GitHubLink_Click"
+                        <Hyperlink NavigateUri="https://github.com/LIULIN632/ScrewDriver.Toolbox" Click="GitHubLink_Click"
                                    Foreground="{DynamicResource PrimaryBrush}">
                             GitHub →
                         </Hyperlink>
