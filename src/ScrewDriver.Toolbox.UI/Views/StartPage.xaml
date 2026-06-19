@@ -56,7 +56,21 @@
                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         <TextBlock Text="📦" FontSize="28"
                                                    HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                   IsHitTestVisible="False"/>
+                                                   IsHitTestVisible="False">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding LocalExePath}" Value="{x:Null}">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding LocalExePath}" Value="">
+                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
                                     </Grid>
                                     <TextBlock Text="{Binding Name}" FontSize="12"
                                                Foreground="{DynamicResource TextPrimaryBrush}"
