@@ -1,7 +1,6 @@
 <Page x:Class="ScrewDriver.Toolbox.UI.Views.OptimizeDetailPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
       Title="优化详情"
       Background="{DynamicResource BackgroundBrush}">
     <Grid Margin="28,24">
@@ -10,7 +9,6 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- 顶部：返回 + 标题 -->
         <Grid Grid.Row="0" Margin="0,0,0,24">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <Button Content="← 返回" Height="32" FontSize="12" Padding="14,0"
@@ -21,7 +19,6 @@
             </StackPanel>
         </Grid>
 
-        <!-- 设置列表 -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <ItemsControl x:Name="SettingList">
                 <ItemsControl.ItemTemplate>
@@ -34,7 +31,6 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
 
-                                <!-- 图标 -->
                                 <Border Width="36" Height="36" CornerRadius="8"
                                         Background="{DynamicResource PrimaryLightBrush}"
                                         VerticalAlignment="Center" Margin="0,0,12,0">
@@ -42,20 +38,16 @@
                                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
 
-                                <!-- 名称+描述 -->
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold">
-                                        <TextBlock.Style>
-                                            <Style TargetType="TextBlock">
-                                                <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}"/>
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsDangerous}" Value="True">
-                                                        <Setter Property="Foreground" Value="#DC2626"/>
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </TextBlock.Style>
-                                    </TextBlock>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                        <Border Padding="5,1" CornerRadius="4" Margin="8,0,0,0"
+                                                Background="#FEE2E2" VerticalAlignment="Center"
+                                                Visibility="{Binding IsDangerous, Converter={StaticResource BoolToVis}}">
+                                            <TextBlock Text="高风险" FontSize="10" Foreground="#991B1B"/>
+                                        </Border>
+                                    </StackPanel>
                                     <TextBlock Text="{Binding Description}" FontSize="12"
                                                Foreground="{DynamicResource TextSecondaryBrush}"
                                                TextWrapping="Wrap" Margin="0,4,0,0"/>
@@ -63,7 +55,6 @@
                                                Foreground="{Binding StatusColor}" Margin="0,4,0,0"/>
                                 </StackPanel>
 
-                                <!-- 开关 -->
                                 <CheckBox Grid.Column="2" IsChecked="{Binding IsEnabled}"
                                           Style="{StaticResource ToggleSwitchStyle}"
                                           VerticalAlignment="Center" Margin="16,0,0,0"/>

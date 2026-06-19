@@ -1,4 +1,6 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using ScrewDriver.Toolbox.Core.Interfaces;
 
 namespace ScrewDriver.Toolbox.Core.Models;
@@ -17,14 +19,24 @@ public enum RecommendedAction
     Disable
 }
 
-public class SystemSettingItem : IRiskOperation
+public class SystemSettingItem : IRiskOperation, INotifyPropertyChanged
 {
     public string Id { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string IconCode { get; set; } = string.Empty;
     public string Category { get; set; } = string.Empty;
-    public bool IsEnabled { get; set; }
+
+    private bool _isEnabled;
+    public bool IsEnabled
+    {
+        get => _isEnabled;
+        set
+        {
+            _isEnabled = value;
+            OnPropertyChanged();
+        }
+    }
     public bool IsDangerous => RiskLevel == RiskLevel.Dangerous;
     public string StatusText => IsEnabled ? "已开启" : "已关闭";
     public string StatusColor => IsEnabled ? "#22C55E" : "#999999";
@@ -42,6 +54,10 @@ public class SystemSettingItem : IRiskOperation
     public string OperationType { get; set; } = "Registry";
     public string? EnablePsCommand { get; set; }
     public string? DisablePsCommand { get; set; }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+    protected void OnPropertyChanged([CallerMemberName] string? name = null)
+        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 }
 
 public class SettingGroup

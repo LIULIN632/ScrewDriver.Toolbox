@@ -1,108 +1,120 @@
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Windows;
 using ScrewDriver.Toolbox.Core.Models;
+using ScrewDriver.Toolbox.SystemTools.Services;
+using MessageBox = System.Windows.MessageBox;
 
 namespace ScrewDriver.Toolbox.UI.ViewModels;
 
 public class OptimizeDetailViewModel
 {
+    private readonly SystemOptimizerService _service = new();
+    private readonly string _categoryName;
+    private SystemSettingItem? _lastToggled;
+
     public ObservableCollection<SystemSettingItem> SettingItems { get; } = new();
 
-    public void LoadSettingsByCategory(string categoryName)
+    public OptimizeDetailViewModel()
+    {
+        _categoryName = "";
+    }
+
+    public OptimizeDetailViewModel(string categoryName) : this()
+    {
+        _categoryName = categoryName;
+        LoadSettings();
+    }
+
+    public void LoadSettings()
     {
         SettingItems.Clear();
 
-        switch (categoryName)
+        // 从服务加载所有设置
+        var allSettings = _service.GetAllSettings();
+        var categorySettings = allSettings.Where(s => s.Category == _categoryName).ToList();
+
+        if (categorySettings.Count > 0)
         {
-            case "隐私与体验": LoadPrivacySettings(); break;
-            case "性能优化": LoadPerformanceSettings(); break;
-            case "游戏优化": LoadGameSettings(); break;
-            case "电源与电池": LoadPowerSettings(); break;
-            case "存储与后台": LoadStorageSettings(); break;
-            case "搜索与助手": LoadSearchSettings(); break;
-            case "更新与传输": LoadUpdateSettings(); break;
-            case "安全": LoadSecuritySettings(); break;
-            case "通知与个性化": LoadNotifySettings(); break;
+            // 有对应服务定义，直接使用并监听变更
+            foreach (var setting in categorySettings)
+            {
+                setting.PropertyChanged += (_, _) =>
+                {
+                    if (setting == _lastToggled)
+                        ApplyChange(setting);
+                };
+                SettingItems.Add(setting);
+            }
+        }
+        else
+        {
+            // 没有服务定义 → 创建未关联的设置项，提示无法操作
+            LoadFallbackSettings();
         }
     }
 
-    private void LoadPrivacySettings()
+    private void ApplyChange(SystemSettingItem setting)
     {
-        SettingItems.Add(new() { Name = "关闭广告 ID", Description = "禁止应用使用广告 ID 跟踪你的行为", IconCode = "🛡️", RiskLevel = RiskLevel.Recommended });
-        SettingItems.Add(new() { Name = "关闭诊断数据", Description = "禁止向微软发送诊断和使用数据", IconCode = "📊", RiskLevel = RiskLevel.Optional });
-        SettingItems.Add(new() { Name = "关闭活动历史记录", Description = "禁止 Windows 记录你的设备使用活动", IconCode = "📋", RiskLevel = RiskLevel.Optional });
-        SettingItems.Add(new() { Name = "关闭量身定制体验", Description = "不再根据使用习惯推荐内容和广告", IconCode = "🎯", RiskLevel = RiskLevel.Optional });
-        SettingItems.Add(new() { Name = "关闭云剪贴板", Description = "禁止跨设备同步剪贴板内容", IconCode = "📋", RiskLevel = RiskLevel.Optional });
-        SettingItems.Add(new() { Name = "关闭 Windows 反馈", Description = "禁止系统主动征求用户反馈意见", IconCode = "💬", RiskLevel = RiskLevel.Optional });
-        SettingItems.Add(new() { Name = "关闭 Windows 错误报告", Description = "禁止发送程序崩溃和错误报告", IconCode = "⚠️", RiskLevel = RiskLevel.Optional });
-        SettingItems.Add(new() { Name = "关闭 OneDrive 自动备份", Description = "禁止 OneDrive 自动备份桌面/文档/图片", IconCode = "☁️", RiskLevel = RiskLevel.Optional });
-        SettingItems.Add(new() { Name = "关闭 Copilot", Description = "隐藏任务栏 Copilot 按钮", IconCode = "🤖", RiskLevel = RiskLevel.Recommended });
-        SettingItems.Add(new() { Name = "关闭定位服务", Description = "全局关闭系统定位服务", IconCode = "📍", RiskLevel = RiskLevel.Dangerous });
+        var result = _service.ApplySetting(setting.Id, setting.IsEnabled);
+        if (!result)
+        {
+            setting.IsEnabled = !setting.IsEnabled;
+            MessageBox.Show($"「{setting.Name}」设置失败，请以管理员身份运行。", "错误",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
-    private void LoadPerformanceSettings()
+    private void LoadFallbackSettings()
     {
-        SettingItems.Add(new() { Name = "开启 Ultimate Performance", Description = "启用终极性能电源计划，充分发挥硬件潜力", IconCode = "🚀", RiskLevel = RiskLevel.Recommended });
-        SettingItems.Add(new() { Name = "开启 HAGS", Description = "硬件加速 GPU 调度，降低游戏和渲染延迟", IconCode = "🎮", RiskLevel = RiskLevel.Recommended });
-        SettingItems.Add(new() { Name = "关闭快速启动", Description = "关闭快速启动可解决关机/更新问题", IconCode = "⏩", RiskLevel = RiskLevel.Optional });
-        SettingItems.Add(new() { Name = "关闭动画效果", Description = "关闭窗口动画，提升低配机响应速度", IconCode = "🎬", RiskLevel = RiskLevel.Optional });
-        SettingItems.Add(new() { Name = "开启核心隔离", Description = "启用 Core Isolation / VBS，提升系统安全性", IconCode = "🔒", RiskLevel = RiskLevel.Dangerous });
-        SettingItems.Add(new() { Name = "关闭应用启动延迟", Description = "禁止系统延迟启动应用，适合高性能设备", IconCode = "⏰", RiskLevel = RiskLevel.Dangerous });
-        SettingItems.Add(new() { Name = "关闭内存完整性", Description = "关闭内存完整性可提升游戏性能但降低安全性", IconCode = "🧠", RiskLevel = RiskLevel.Dangerous });
+        var map = new (string id, string name, string desc, string icon)[]
+        {
+            ("ad-id", "关闭广告 ID", "禁止应用使用广告 ID 跟踪你的行为", "🛡️"),
+            ("telemetry", "关闭诊断数据", "将诊断数据收集级别设为最低", "📊"),
+            ("activity-history", "关闭活动历史记录", "禁止 Windows 记录使用活动", "📋"),
+            ("show-extensions", "显示文件扩展名", "资源管理器中显示文件扩展名", "📄"),
+            ("show-hidden-files", "显示隐藏文件", "资源管理器中显示隐藏文件", "📁"),
+            ("classic-context", "经典右键菜单", "恢复 Win10 风格完整右键菜单", "📋"),
+            ("disable-widgets", "关闭小组件", "禁用任务栏小组件按钮", "📰"),
+            ("disable-search-highlights", "关闭搜索亮点", "禁用搜索框每日亮点", "🔍"),
+            ("game-mode", "游戏模式", "启用 Windows 游戏模式", "🎮"),
+            ("vbs", "关闭 VBS 内存完整性", "禁用虚拟化安全提升游戏性能", "🧠"),
+            ("disable-copilot", "关闭 Copilot", "移除任务栏 Copilot 按钮", "🤖"),
+            ("disable-tips", "关闭 Windows 提示", "禁用设置建议和锁屏提示", "💡"),
+            ("power-plan-high", "高性能电源计划", "切换至高性能电源模式", "⚡"),
+            ("power-plan-balanced", "平衡电源计划", "兼顾性能与功耗", "🔋"),
+            ("power-plan-saver", "节能电源计划", "最大化电池续航", "💤"),
+            ("noauto-update", "暂停自动更新", "临时暂停 Windows 更新", "🔄"),
+            ("disable-defender", "关闭 Defender", "禁用实时保护（高风险）", "🛡️"),
+        };
+
+        var allSettings = _service.GetAllSettings();
+
+        foreach (var (id, name, desc, icon) in map)
+        {
+            var matched = allSettings.FirstOrDefault(s => s.Id == id);
+            if (matched != null)
+            {
+                matched.IconCode = icon;
+                matched.PropertyChanged += (_, _) =>
+                {
+                    if (matched == _lastToggled)
+                        ApplyChange(matched);
+                };
+                SettingItems.Add(matched);
+            }
+        }
     }
 
-    private void LoadGameSettings()
+    public void ToggleSetting(SystemSettingItem setting)
     {
-        SettingItems.Add(new() { Name = "开启游戏模式", Description = "游戏时优先分配 CPU/GPU 资源", IconCode = "🎮", RiskLevel = RiskLevel.Recommended });
-        SettingItems.Add(new() { Name = "开启窗口化游戏优化", Description = "改善窗口/无边框模式游戏的帧率和延迟", IconCode = "🖥️", RiskLevel = RiskLevel.Recommended });
-        SettingItems.Add(new() { Name = "关闭鼠标加速度", Description = "关闭鼠标加速，提升游戏瞄准精度", IconCode = "🖱️", RiskLevel = RiskLevel.Optional });
-        SettingItems.Add(new() { Name = "关闭全屏优化", Description = "解决部分游戏全屏时帧率波动问题", IconCode = "🖥️", RiskLevel = RiskLevel.Optional });
-    }
-
-    private void LoadPowerSettings()
-    {
-        SettingItems.Add(new() { Name = "开启高性能电源模式", Description = "提升性能，增加功耗，适合插电使用", IconCode = "⚡", RiskLevel = RiskLevel.Optional });
-        SettingItems.Add(new() { Name = "关闭休眠功能", Description = "删除 hiberfil.sys 文件，释放磁盘空间", IconCode = "💤", RiskLevel = RiskLevel.Dangerous });
-        SettingItems.Add(new() { Name = "开启节能模式", Description = "降低性能以换取更长电池续航", IconCode = "🔋", RiskLevel = RiskLevel.Optional });
-    }
-
-    private void LoadStorageSettings()
-    {
-        SettingItems.Add(new() { Name = "开启存储感知", Description = "自动清理临时文件和回收站释放空间", IconCode = "🗑️", RiskLevel = RiskLevel.Recommended });
-        SettingItems.Add(new() { Name = "关闭传递优化", Description = "禁止 P2P 分享更新包，节省带宽", IconCode = "📡", RiskLevel = RiskLevel.Optional });
-        SettingItems.Add(new() { Name = "关闭后台服务", Description = "优化后台服务，减少系统资源占用", IconCode = "⚙️", RiskLevel = RiskLevel.Dangerous });
-    }
-
-    private void LoadSearchSettings()
-    {
-        SettingItems.Add(new() { Name = "关闭搜索亮点", Description = "搜索框不再显示新闻和热点内容", IconCode = "🔍", RiskLevel = RiskLevel.Recommended });
-        SettingItems.Add(new() { Name = "关闭搜索历史记录", Description = "禁止记录此设备的搜索历史", IconCode = "📜", RiskLevel = RiskLevel.Optional });
-        SettingItems.Add(new() { Name = "关闭小娜", Description = "禁用 Windows 语音助手 Cortana", IconCode = "🗣️", RiskLevel = RiskLevel.Optional });
-    }
-
-    private void LoadUpdateSettings()
-    {
-        SettingItems.Add(new() { Name = "暂停自动更新", Description = "临时暂停 Windows 更新 7 天", IconCode = "🔄", RiskLevel = RiskLevel.Optional });
-        SettingItems.Add(new() { Name = "关闭驱动自动更新", Description = "禁止 Windows 自动更新驱动程序", IconCode = "🔧", RiskLevel = RiskLevel.Optional });
-        SettingItems.Add(new() { Name = "关闭商店自动更新", Description = "禁止 Microsoft Store 自动更新应用", IconCode = "🏪", RiskLevel = RiskLevel.Optional });
-        SettingItems.Add(new() { Name = "清理更新缓存", Description = "清理 Windows Update 缓存文件释放空间", IconCode = "🧹", RiskLevel = RiskLevel.Optional });
-    }
-
-    private void LoadSecuritySettings()
-    {
-        SettingItems.Add(new() { Name = "关闭 UAC", Description = "关闭用户账户控制，不再弹窗确认", IconCode = "🛡️", RiskLevel = RiskLevel.Dangerous });
-        SettingItems.Add(new() { Name = "关闭 SmartScreen", Description = "关闭 Windows Defender SmartScreen 保护", IconCode = "🖥️", RiskLevel = RiskLevel.Dangerous });
-        SettingItems.Add(new() { Name = "关闭 BitLocker 自动加密", Description = "禁止设备自动启用 BitLocker 加密", IconCode = "🔐", RiskLevel = RiskLevel.Optional });
-        SettingItems.Add(new() { Name = "关闭 Defender", Description = "关闭 Windows Defender 防病毒保护", IconCode = "🛡️", RiskLevel = RiskLevel.Dangerous });
-    }
-
-    private void LoadNotifySettings()
-    {
-        SettingItems.Add(new() { Name = "关闭弹窗通知", Description = "禁止所有应用弹出桌面通知", IconCode = "🔔", RiskLevel = RiskLevel.Optional });
-        SettingItems.Add(new() { Name = "关闭锁屏通知", Description = "锁屏界面不显示通知内容，保护隐私", IconCode = "🔒", RiskLevel = RiskLevel.Recommended });
-        SettingItems.Add(new() { Name = "开启深色模式", Description = "切换系统为深色主题", IconCode = "🌙", RiskLevel = RiskLevel.Optional });
-        SettingItems.Add(new() { Name = "显示文件扩展名", Description = "在资源管理器中显示文件扩展名", IconCode = "📄", RiskLevel = RiskLevel.Recommended });
-        SettingItems.Add(new() { Name = "显示隐藏文件", Description = "在资源管理器中显示隐藏文件", IconCode = "📁", RiskLevel = RiskLevel.Optional });
-        SettingItems.Add(new() { Name = "关闭开机声音", Description = "禁止 Windows 启动时播放声音", IconCode = "🔇", RiskLevel = RiskLevel.Optional });
-        SettingItems.Add(new() { Name = "关闭小组件", Description = "隐藏任务栏小组件按钮", IconCode = "📰", RiskLevel = RiskLevel.Optional });
+        _lastToggled = setting;
+        var result = _service.ApplySetting(setting.Id, setting.IsEnabled);
+        if (!result)
+        {
+            setting.IsEnabled = !setting.IsEnabled;
+            MessageBox.Show($"「{setting.Name}」设置失败，请以管理员身份运行。", "错误",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 }
