@@ -68,6 +68,12 @@
                             <TextBlock Text="系统优化" FontSize="14" VerticalAlignment="Center"/>
                         </Border>
                         <Border Padding="16,0" Height="48" Cursor="Hand"
+                                Background="Transparent" Tag="SystemSettingPage"
+                                Style="{StaticResource NavItemHover}"
+                                MouseLeftButtonDown="NavItem_Click">
+                            <TextBlock Text="系统设置" FontSize="14" VerticalAlignment="Center"/>
+                        </Border>
+                        <Border Padding="16,0" Height="48" Cursor="Hand"
                                 Background="Transparent" Tag="RepairCenterPage"
                                 Style="{StaticResource NavItemHover}"
                                 MouseLeftButtonDown="NavItem_Click">

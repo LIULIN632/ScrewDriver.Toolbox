@@ -256,6 +256,7 @@ public partial class MainWindow : Window
             "StartPage" => new StartPage(),
             "ToolRepositoryPage" => new ToolRepositoryPage(),
             "SystemOptimizerPage" => new SystemOptimizerPage(),
+            "SystemSettingPage" => new SystemSettingPage(),
             "RepairCenterPage" => new RepairCenterPage(),
             "HardwarePage" => new HardwarePage(),
             "ScenariosPage" => new ScenariosPage(),
