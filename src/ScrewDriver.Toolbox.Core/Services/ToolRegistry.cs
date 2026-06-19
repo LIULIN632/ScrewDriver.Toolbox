@@ -26,7 +26,6 @@ public static class ToolRegistry
             AddNetworkTools();
             AddHardwareDetection();
             AddBenchmarkTools();
-            AddPeripheralScreen();
             AddBrandTools();
             AddOtherTools();
             AddGameTools();
@@ -103,10 +102,7 @@ public static class ToolRegistry
             Description = "磁盘分区管理、数据恢复、备份克隆，国产专业磁盘工具",
             OfficialUrl = "https://www.diskgenius.cn/",
             WingetId = "", RiskLevel = "注意" },
-        new() { Name = "右键菜单管理", Category = "系统工具",
-            Description = "管理 Windows 右键菜单和 Shell 扩展，禁用卡顿来源的第三方扩展",
-            LaunchPath = "ms-settings:installed-apps", RiskLevel = "注意" },
-        new() { Name = "ContextMenuManager", Category = "系统工具",
+                new() { Name = "ContextMenuManager", Category = "系统工具",
             Description = "开源右键菜单管理工具，禁用/启用/备份右键菜单扩展项",
             GithubUrl = "https://github.com/BluePointLilac/ContextMenuManager",
             OfficialUrl = "https://github.com/BluePointLilac/ContextMenuManager", RiskLevel = "注意" },
@@ -191,10 +187,7 @@ public static class ToolRegistry
         new() { Name = "KMS 激活", Category = "其他工具",
             Description = "Windows/Office 批量激活管理，查看激活状态、设置 KMS 服务器、产品密钥管理",
             LaunchPath = "cmd.exe /k slmgr.vbs -dlv", RiskLevel = "注意" },
-        new() { Name = "游戏优化", Category = "安全工具",
-            Description = "打开 Windows 游戏模式设置，启用 GPU 硬件加速和可变刷新率",
-            LaunchPath = "ms-settings:gaming-gamemode", RiskLevel = "安全" },
-        new() { Name = "DDU", Category = "显卡工具",
+                new() { Name = "DDU", Category = "显卡工具",
             Description = "显卡驱动彻底清除工具，安全模式下完全清理驱动残留",
             OfficialUrl = "https://www.guru3d.com/download/display-driver-uninstaller-ddu/",
             WingetId = "Wagnardsoft.DisplayDriverUninstaller", RiskLevel = "注意" },
@@ -222,13 +215,7 @@ public static class ToolRegistry
             Description = "全球最流行的网络测速工具，测试下载/上传带宽和延迟",
             OfficialUrl = "https://www.speedtest.net/",
             WingetId = "Ookla.Speedtest.Desktop", RiskLevel = "安全" },
-        new() { Name = "网络连接", Category = "其他工具",
-            Description = "管理网络适配器和连接设置，快速查看 IP/DNS/适配器状态",
-            LaunchPath = "ncpa.cpl", RiskLevel = "安全" },
-        new() { Name = "端口占用", Category = "其他工具",
-            Description = "查看本机端口占用情况，定位占用进程，排查端口冲突问题",
-            LaunchPath = "resmon.exe", RiskLevel = "安全" },
-        new() { Name = "Hosts 编辑", Category = "其他工具",
+                        new() { Name = "Hosts 编辑", Category = "其他工具",
             Description = "以管理员权限打开 hosts 文件，自定义域名到 IP 的本地解析映射",
             LaunchPath = @"notepad C:\Windows\System32\drivers\etc\hosts", RiskLevel = "注意" },
         new() { Name = "WiFi 密码", Category = "其他工具",
@@ -350,22 +337,7 @@ public static class ToolRegistry
             GithubUrl = "https://github.com/integralfx/MemTestHelper",
             OfficialUrl = "https://github.com/integralfx/MemTestHelper",
             WingetId = "", RiskLevel = "注意" },
-        new() { Name = "电池消耗分析", Category = "其他工具",
-            Description = "生成 Windows 电池使用详细报告，分析应用耗电和电池健康状态",
-            LaunchPath = "cmd.exe /c powercfg /batteryreport /output %temp%\\battery-report.html && start %temp%\\battery-report.html",
-            RiskLevel = "安全" }
-    });
-
-    // ============================================================
-    // 6. 外设与屏幕 (8)
-    // ============================================================
-    private static void AddPeripheralScreen() => _allTools!.AddRange(new List<ToolItem>
-    {
-        new() { Name = "坏点检测工具", Category = "屏幕工具",
-            Description = "屏幕坏点与漏光检测，支持纯色/渐变测试，快速判断屏幕品质",
-            OfficialUrl = "https://www.eizo.be/monitor-test/",
-            WingetId = "", RiskLevel = "安全" },
-        new() { Name = "色域检测工具", Category = "屏幕工具",
+                new() { Name = "色域检测工具", Category = "屏幕工具",
             Description = "检测显示器色域覆盖(sRGB/Adobe RGB/DCI-P3)，在线或本地测试",
             OfficialUrl = "https://www.displaycal.net/",
             WingetId = "", RiskLevel = "安全" },
