@@ -88,7 +88,71 @@
                 </TextBlock.Style>
             </TextBlock>
 
-            <!-- 底部状态栏 -->
+            <!-- 内置工具快捷栏 -->
+            <Border Background="{DynamicResource CardBackgroundBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                    CornerRadius="12" Padding="16" Margin="0,24,0,16">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <!-- Hosts 编辑 -->
+                    <Button Style="{StaticResource NavItemHover}" Margin="0,0,8,0"
+                            Click="BuiltInHosts_Click">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="📝" FontSize="24" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Hosts 编辑" FontSize="12" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                            <TextBlock Text="编辑系统Hosts" FontSize="10"
+                                       Foreground="{DynamicResource TextTertiaryBrush}"
+                                       HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <!-- KMS 激活 -->
+                    <Button Grid.Column="1" Style="{StaticResource NavItemHover}" Margin="4,0"
+                            Click="BuiltInKms_Click">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="🔑" FontSize="24" HorizontalAlignment="Center"/>
+                            <TextBlock Text="KMS 激活" FontSize="12" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                            <TextBlock Text="查看激活状态" FontSize="10"
+                                       Foreground="{DynamicResource TextTertiaryBrush}"
+                                       HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <!-- WiFi 密码 -->
+                    <Button Grid.Column="2" Style="{StaticResource NavItemHover}" Margin="4,0"
+                            Click="BuiltInWifi_Click">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="📶" FontSize="24" HorizontalAlignment="Center"/>
+                            <TextBlock Text="WiFi 密码" FontSize="12" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                            <TextBlock Text="查看WiFi密码" FontSize="10"
+                                       Foreground="{DynamicResource TextTertiaryBrush}"
+                                       HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                    <!-- 证书拦截 -->
+                    <Button Grid.Column="3" Style="{StaticResource NavItemHover}" Margin="8,0,0,0"
+                            Click="BuiltInCert_Click">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="🛡️" FontSize="24" HorizontalAlignment="Center"/>
+                            <TextBlock Text="证书拦截" FontSize="12" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                            <TextBlock Text="管理根证书" FontSize="10"
+                                       Foreground="{DynamicResource TextTertiaryBrush}"
+                                       HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+            </Border>
             <Border Background="{DynamicResource NavBackgroundBrush}"
                     CornerRadius="8" Padding="12" Margin="0,32,0,0">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">

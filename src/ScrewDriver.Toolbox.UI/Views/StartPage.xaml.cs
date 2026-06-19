@@ -86,4 +86,34 @@ public partial class StartPage : Page
         if (DataContext is StartPageViewModel vm)
             vm.RemoveToolCommand?.Execute(_contextTool.Name);
     }
+
+    // 内置工具
+    private void BuiltInHosts_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var hosts = @"C:\Windows\System32\drivers\etc\hosts";
+            if (System.IO.File.Exists(hosts))
+                Process.Start(new ProcessStartInfo("notepad.exe", hosts) { UseShellExecute = true });
+        }
+        catch { }
+    }
+
+    private void BuiltInKms_Click(object sender, RoutedEventArgs e)
+    {
+        try { Process.Start(new ProcessStartInfo("cmd.exe", "/k slmgr.vbs -dlv") { UseShellExecute = true, Verb = "runas" }); }
+        catch { }
+    }
+
+    private void BuiltInWifi_Click(object sender, RoutedEventArgs e)
+    {
+        try { Process.Start(new ProcessStartInfo("cmd.exe", "/k netsh wlan show profiles") { UseShellExecute = true }); }
+        catch { }
+    }
+
+    private void BuiltInCert_Click(object sender, RoutedEventArgs e)
+    {
+        try { Process.Start(new ProcessStartInfo("certmgr.msc") { UseShellExecute = true }); }
+        catch { }
+    }
 }
