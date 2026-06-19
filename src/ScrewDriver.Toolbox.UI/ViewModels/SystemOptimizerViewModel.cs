@@ -115,13 +115,25 @@ public class SystemOptimizerViewModel : BaseViewModel
         Categories.Add(new OptimizeCategoryItem
         {
             Title = "预装应用卸载", Description = "卸载 Windows 预装应用",
-            IconCode = "🗑️"
+            IconCode = "🗑️",
+            NavigateCommand = new RelayCommand(_ => OpenWindow(new CleanWindow()))
         });
         Categories.Add(new OptimizeCategoryItem
         {
             Title = "垃圾清理", Description = "扫描并清理系统临时文件和缓存",
-            IconCode = "🧹"
+            IconCode = "🧹",
+            NavigateCommand = new RelayCommand(_ => OpenWindow(new CleanWindow()))
         });
+    }
+
+    private static void OpenWindow(Window w)
+    {
+        if (WpfApp.Current.MainWindow is Window main)
+        {
+            w.Owner = main;
+            w.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+            w.ShowDialog();
+        }
     }
 
     private static void NavigateTo(string category)
