@@ -55,39 +55,57 @@ public class SystemOptimizerViewModel : BaseViewModel
         Categories.Clear();
         Categories.Add(new OptimizeCategoryItem
         {
-            Title = "隐私和安全", Description = "安全, 内容交付和广告, 锁屏, 常规...",
-            IconCode = "🛡️", NewFeatureCount = 45,
-            NavigateCommand = new RelayCommand(_ => NavigateTo("隐私和安全"))
+            Title = "隐私与体验", Description = "广告、诊断数据、体验优化、云剪贴板",
+            IconCode = "🛡️",
+            NavigateCommand = new RelayCommand(_ => NavigateTo("隐私与体验"))
         });
         Categories.Add(new OptimizeCategoryItem
         {
-            Title = "电源", Description = "显示, 硬盘, Internet Explorer, 桌面背景设置...",
+            Title = "性能优化", Description = "GPU调度、快速启动、动画效果、核心隔离",
+            IconCode = "⚡",
+            NavigateCommand = new RelayCommand(_ => NavigateTo("性能优化"))
+        });
+        Categories.Add(new OptimizeCategoryItem
+        {
+            Title = "游戏优化", Description = "游戏模式、独显直连、窗口优化、鼠标加速",
+            IconCode = "🎮",
+            NavigateCommand = new RelayCommand(_ => NavigateTo("游戏优化"))
+        });
+        Categories.Add(new OptimizeCategoryItem
+        {
+            Title = "电源与电池", Description = "电源计划、休眠、养护模式、节能",
             IconCode = "🔋",
-            NavigateCommand = new RelayCommand(_ => NavigateTo("电源"))
+            NavigateCommand = new RelayCommand(_ => NavigateTo("电源与电池"))
         });
         Categories.Add(new OptimizeCategoryItem
         {
-            Title = "游戏和性能", Description = "处理器, 显卡, 网络, 安全...",
-            IconCode = "🎮", NewFeatureCount = 17,
-            NavigateCommand = new RelayCommand(_ => NavigateTo("游戏和性能"))
+            Title = "存储与后台", Description = "存储感知、传递优化、后台服务、启动延迟",
+            IconCode = "💾",
+            NavigateCommand = new RelayCommand(_ => NavigateTo("存储与后台"))
         });
         Categories.Add(new OptimizeCategoryItem
         {
-            Title = "更新", Description = "更新策略, 交付和商店, 更新行为",
-            IconCode = "🔄", NewFeatureCount = 1,
-            NavigateCommand = new RelayCommand(_ => NavigateTo("更新"))
+            Title = "搜索与助手", Description = "搜索亮点、Copilot、小娜、历史记录",
+            IconCode = "🔍",
+            NavigateCommand = new RelayCommand(_ => NavigateTo("搜索与助手"))
         });
         Categories.Add(new OptimizeCategoryItem
         {
-            Title = "通知", Description = "其他设置, 系统通知, 隐私通知, 安全通知",
+            Title = "更新与传输", Description = "更新策略、传递优化、驱动更新、商店更新",
+            IconCode = "🔄",
+            NavigateCommand = new RelayCommand(_ => NavigateTo("更新与传输"))
+        });
+        Categories.Add(new OptimizeCategoryItem
+        {
+            Title = "安全", Description = "UAC、BitLocker、Defender、SmartScreen、VBS",
+            IconCode = "🔒",
+            NavigateCommand = new RelayCommand(_ => NavigateTo("安全"))
+        });
+        Categories.Add(new OptimizeCategoryItem
+        {
+            Title = "通知与个性化", Description = "通知、深色模式、扩展名、隐藏文件、开机声",
             IconCode = "🔔",
-            NavigateCommand = new RelayCommand(_ => NavigateTo("通知"))
-        });
-        Categories.Add(new OptimizeCategoryItem
-        {
-            Title = "声音", Description = "系统声音",
-            IconCode = "🔊",
-            NavigateCommand = new RelayCommand(_ => NavigateTo("声音"))
+            NavigateCommand = new RelayCommand(_ => NavigateTo("通知与个性化"))
         });
     }
 
