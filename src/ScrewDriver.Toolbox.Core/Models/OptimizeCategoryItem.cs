@@ -10,5 +10,6 @@ public class OptimizeCategoryItem
     public int NewFeatureCount { get; set; }
     public bool HasNewBadge => NewFeatureCount > 0;
     public string NewBadgeText => NewFeatureCount > 0 ? $"新功能 {NewFeatureCount}" : "";
+    public string Category { get; set; } = string.Empty;
     public ICommand? NavigateCommand { get; set; }
 }

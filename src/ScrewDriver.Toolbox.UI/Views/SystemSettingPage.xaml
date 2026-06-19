@@ -7,52 +7,78 @@
     <Page.DataContext>
         <vm:SystemSettingViewModel/>
     </Page.DataContext>
-    <Grid Margin="28,24">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="160"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-        <StackPanel Grid.Row="0" Margin="0,0,0,24">
-            <TextBlock Text="系统设置" FontSize="28" FontWeight="Bold"
-                       Foreground="{DynamicResource TextPrimaryBrush}"/>
-            <TextBlock Text="常用系统设置快捷入口" FontSize="14"
-                       Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,6,0,0"/>
-        </StackPanel>
-
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <ItemsControl ItemsSource="{Binding Items}">
+        <!-- 左侧分类导航 -->
+        <Border Grid.Column="0" Background="{DynamicResource NavBackgroundBrush}"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0"
+                Padding="12,24">
+            <ItemsControl ItemsSource="{Binding Categories}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Button Style="{StaticResource OptCardStyle}" Margin="0,0,0,12"
-                                Command="{Binding NavigateCommand}">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                </Grid.ColumnDefinitions>
-                                <Border Width="44" Height="44" CornerRadius="10"
-                                        Background="{DynamicResource PrimaryLightBrush}"
-                                        VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding IconCode}" FontSize="22"
-                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                                <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding Title}" FontSize="15" FontWeight="SemiBold"
-                                               Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                    <TextBlock Text="{Binding Description}" FontSize="12"
-                                               Foreground="{DynamicResource TextSecondaryBrush}"
-                                               Margin="0,4,0,0"/>
-                                </StackPanel>
-                                <TextBlock Grid.Column="2" Text="→" FontSize="18"
-                                           Foreground="{DynamicResource TextTertiaryBrush}"
-                                           VerticalAlignment="Center" Margin="12,0,0,0"/>
-                            </Grid>
-                        </Button>
+                        <Border CornerRadius="8" Padding="14,10" Cursor="Hand" Margin="0,0,0,4"
+                                Background="Transparent"
+                                MouseLeftButtonDown="Category_Click">
+                            <TextBlock Text="{Binding}" FontSize="14"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        </Border>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
-        </ScrollViewer>
+        </Border>
+
+        <!-- 右侧内容区 -->
+        <Grid Grid.Column="1" Margin="28,24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Margin="0,0,0,24">
+                <TextBlock Text="系统设置" FontSize="28" FontWeight="Bold"
+                           Foreground="{DynamicResource TextPrimaryBrush}"/>
+                <TextBlock Text="{Binding SelectedCategory, StringFormat='{}当前筛选: {0}'}" FontSize="14"
+                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,6,0,0"/>
+            </StackPanel>
+
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding Items}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Style="{StaticResource OptCardStyle}" Margin="0,0,0,12"
+                                    Command="{Binding NavigateCommand}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Border Width="44" Height="44" CornerRadius="10"
+                                            Background="{DynamicResource PrimaryLightBrush}"
+                                            VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding IconCode}" FontSize="22"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel Grid.Column="1" Margin="14,0,0,0" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Title}" FontSize="15" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                        <TextBlock Text="{Binding Description}" FontSize="12"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                                   Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="2" Text="→" FontSize="18"
+                                               Foreground="{DynamicResource TextTertiaryBrush}"
+                                               VerticalAlignment="Center" Margin="12,0,0,0"/>
+                                </Grid>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Grid>
     </Grid>
 </Page>
