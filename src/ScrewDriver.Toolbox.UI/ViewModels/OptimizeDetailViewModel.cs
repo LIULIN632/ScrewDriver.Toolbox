@@ -16,6 +16,8 @@ public class OptimizeDetailViewModel
 
     public ObservableCollection<SystemSettingItem> SettingItems { get; } = new();
 
+    public ObservableCollection<RegistryComboItem> ComboItems { get; } = new();
+
     public OptimizeDetailViewModel()
     {
         _categoryName = "";
@@ -56,6 +58,7 @@ public class OptimizeDetailViewModel
 
         // 额外注册表设置（Dism++ 规则）
         AddRegistrySettings();
+        AddComboSettings();
     }
 
     private void ApplyChange(SystemSettingItem setting)
@@ -185,5 +188,36 @@ public class OptimizeDetailViewModel
             MessageBox.Show($"「{setting.Name}」设置失败，请以管理员身份运行。", "错误",
                 MessageBoxButton.OK, MessageBoxImage.Error);
         }
+    }
+
+    private void AddComboSettings()
+    {
+        // 任务栏搜索框样式
+        var searchBox = new RegistryComboItem
+        {
+            Name = "任务栏搜索框",
+            Description = "控制任务栏搜索框的显示方式",
+            IconCode = "🔍",
+            SubKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Search",
+            ValueName = "SearchboxTaskbarMode"
+        };
+        searchBox.Options.Add(new() { DisplayName = "隐藏", Value = 0 });
+        searchBox.Options.Add(new() { DisplayName = "仅显示图标", Value = 1 });
+        searchBox.Options.Add(new() { DisplayName = "显示搜索框", Value = 2 });
+        ComboItems.Add(searchBox);
+
+        // 任务栏合并
+        var combine = new RegistryComboItem
+        {
+            Name = "任务栏按钮合并",
+            Description = "控制任务栏上按钮的合并行为",
+            IconCode = "📌",
+            SubKey = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced",
+            ValueName = "TaskbarGlomLevel"
+        };
+        combine.Options.Add(new() { DisplayName = "始终合并隐藏标签", Value = 0 });
+        combine.Options.Add(new() { DisplayName = "任务栏已满时合并", Value = 1 });
+        combine.Options.Add(new() { DisplayName = "从不合并", Value = 2 });
+        ComboItems.Add(combine);
     }
 }

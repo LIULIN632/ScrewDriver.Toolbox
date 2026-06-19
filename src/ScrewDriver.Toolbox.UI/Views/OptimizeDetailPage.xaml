@@ -20,6 +20,7 @@
         </Grid>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
             <ItemsControl x:Name="SettingList">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
@@ -63,6 +64,42 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
+
+            <!-- 多选下拉设置 -->
+            <ItemsControl ItemsSource="{Binding ComboItems}" Margin="0,8,0,0">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource CardStyle}" Margin="0,0,0,10" Padding="14">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Width="36" Height="36" CornerRadius="8"
+                                        Background="{DynamicResource PrimaryLightBrush}"
+                                        VerticalAlignment="Center" Margin="0,0,12,0">
+                                    <TextBlock Text="{Binding IconCode}" FontSize="16"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                    <TextBlock Text="{Binding Description}" FontSize="12"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               Margin="0,4,0,0"/>
+                                    <ComboBox ItemsSource="{Binding Options}"
+                                              SelectedValue="{Binding SelectedValue}"
+                                              SelectedValuePath="Value"
+                                              DisplayMemberPath="DisplayName"
+                                              Height="28" FontSize="12" Margin="0,6,0,0"
+                                              Background="{DynamicResource CardBackgroundBrush}"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            </StackPanel>
         </ScrollViewer>
     </Grid>
 </Page>
