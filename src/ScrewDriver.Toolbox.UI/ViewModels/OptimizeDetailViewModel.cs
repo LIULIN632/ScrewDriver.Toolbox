@@ -3,6 +3,7 @@ using System.Linq;
 using System.Windows;
 using ScrewDriver.Toolbox.Core.Models;
 using ScrewDriver.Toolbox.SystemTools.Services;
+using ScrewDriver.Toolbox.UI.Common;
 using MessageBox = System.Windows.MessageBox;
 
 namespace ScrewDriver.Toolbox.UI.ViewModels;
@@ -52,6 +53,9 @@ public class OptimizeDetailViewModel
             // 没有服务定义 → 创建未关联的设置项，提示无法操作
             LoadFallbackSettings();
         }
+
+        // 额外注册表设置（Dism++ 规则）
+        AddRegistrySettings();
     }
 
     private void ApplyChange(SystemSettingItem setting)
@@ -104,6 +108,71 @@ public class OptimizeDetailViewModel
                 SettingItems.Add(matched);
             }
         }
+
+        // 补充来自 Dism++ 规则的注册表设置
+        AddRegistrySettings();
+    }
+
+    /// <summary>添加基于注册表的额外优化项（从 Dism++ Data.xml 提取）</summary>
+    private void AddRegistrySettings()
+    {
+        // 资源管理器设置
+        AddRegSetting("隐藏任务视图按钮", "隐藏任务栏的任务视图按钮", "📌",
+            @"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "ShowTaskViewButton");
+        AddRegSetting("任务栏使用小图标", "任务栏使用小图标节省空间", "📌",
+            @"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "TaskbarSmallIcons");
+        AddRegSetting("显示桌面图标", "在桌面上显示此电脑/回收站等图标", "🖥️",
+            @"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel", "{20D04FE0-3AEA-1069-A2D8-08002B30309D}", 0);
+        AddRegSetting("关闭动画效果", "关闭窗口淡入淡出动画，提升响应速度", "🎬",
+            @"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "DisableAnimations");
+        
+        // 系统策略
+        AddRegSetting("关闭自动播放", "禁止自动播放U盘和光盘等媒体", "💿",
+            @"SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer", "NoDriveTypeAutoRun");
+        AddRegSetting("关闭系统通知", "禁止操作系统托盘的通知图标", "🔔",
+            @"Software\Policies\Microsoft\Windows\Explorer", "DisableNotificationCenter");
+        
+        // Windows 设置
+        AddRegSetting("关闭透明效果", "关闭任务栏和开始菜单的亚克力透明效果", "🎨",
+            @"SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize", "EnableTransparency");
+        AddRegSetting("关闭搜索框建议", "在搜索框中不显示建议内容", "🔍",
+            @"Software\Policies\Microsoft\Windows\Explorer", "DisableSearchBoxSuggestions");
+        
+        // 资源管理器增强
+        AddRegSetting("显示系统文件", "在资源管理器中显示受保护的操作系统文件", "📁",
+            @"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "ShowSuperHidden");
+        AddRegSetting("关闭缩略图缓存", "禁止资源管理器缓存缩略图", "🖼️",
+            @"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "DisableThumbnailCache");
+        AddRegSetting("展开到当前文件夹", "导航窗格自动展开到当前文件夹", "📂",
+            @"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "NavPaneExpandToCurrentFolder");
+    }
+
+    private void AddRegSetting(string name, string desc, string icon, string subKey, string valueName, int trueVal = 1)
+    {
+        var item = new SystemSettingItem
+        {
+            Name = name,
+            Description = desc,
+            IconCode = icon,
+            RiskLevel = RiskLevel.Optional,
+            IsEnabled = RegistryOptimizer.ReadBool(subKey, valueName, trueVal)
+        };
+
+        // 添加变更事件
+        item.PropertyChanged += (_, _) =>
+        {
+            if (item == _lastToggled)
+            {
+                var result = RegistryOptimizer.WriteBool(subKey, valueName, item.IsEnabled, trueVal);
+                if (!result)
+                {
+                    item.IsEnabled = !item.IsEnabled;
+                    MessageBox.Show($"「{item.Name}」设置失败。", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        };
+
+        SettingItems.Add(item);
     }
 
     public void ToggleSetting(SystemSettingItem setting)
