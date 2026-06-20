@@ -73,7 +73,7 @@
                                            Foreground="{DynamicResource TextPrimaryBrush}"/>
                                 <TextBlock Text="{Binding Description}" FontSize="11"
                                            Foreground="{DynamicResource TextSecondaryBrush}"
-                                           TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="28"
+                                           TextWrapping="Wrap" TextTrimming="CharacterEllipsis"
                                            Margin="0,3,0,0"/>
                             </StackPanel>
                         </Grid>
