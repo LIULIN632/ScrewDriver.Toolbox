@@ -110,10 +110,13 @@ public class RepairCenterViewModel : BaseViewModel
             }
         });
 
-        InstalledToolsCache.Instance.CacheUpdated += () =>
-        {
-            System.Windows.Application.Current.Dispatcher.Invoke(RefreshInstalledTools);
-        };
+        WeakEventManager<InstalledToolsCache, EventArgs>.AddHandler(
+            InstalledToolsCache.Instance, nameof(InstalledToolsCache.CacheUpdated), OnCacheUpdated);
+    }
+
+    private void OnCacheUpdated(object? sender, EventArgs e)
+    {
+        System.Windows.Application.Current.Dispatcher.Invoke(RefreshInstalledTools);
     }
 
     private void RefreshInstalledTools()

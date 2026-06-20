@@ -41,7 +41,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Tools\**\*" CopyToOutputDirectory="PreserveNewest" />
     <Resource Include="Resources\Icons\*.png" />
   </ItemGroup>
 

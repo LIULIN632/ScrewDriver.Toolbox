@@ -1,0 +1,175 @@
+<UserControl x:Class="ScrewDriver.Toolbox.UI.Views.Pages.SystemSettingsProPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:controls="clr-namespace:ScrewDriver.Toolbox.UI.Views.Controls"
+      Background="{DynamicResource BackgroundBrush}">
+    <UserControl.Resources>
+        <Style x:Key="ChipBorderStyle" TargetType="Border">
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="14,6"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="0,0,8,8"/>
+        </Style>
+    </UserControl.Resources>
+    <Grid Margin="28,24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Row 0: Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,12">
+            <TextBlock Text="系统设置 Pro" FontSize="26" FontWeight="Bold"
+                       Foreground="{DynamicResource TextPrimaryBrush}"/>
+            <TextBlock Text="一站式管理 Windows 系统设置，集成预设方案与批量恢复"
+                       FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0"/>
+            <Border Background="{DynamicResource CardBackgroundBrush}"
+                    CornerRadius="10" Padding="8,4" Margin="0,12,0,0"
+                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                    MaxWidth="360">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="🔍" FontSize="14" VerticalAlignment="Center" Margin="4,0,8,0"
+                               Foreground="{DynamicResource TextTertiaryBrush}"/>
+                    <TextBox Grid.Column="1" Style="{StaticResource SearchBoxStyle}"
+                             Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                             FontSize="13"/>
+                </Grid>
+            </Border>
+        </StackPanel>
+
+        <!-- Row 1: Preset bar -->
+        <ItemsControl Grid.Row="1" ItemsSource="{Binding Presets}" Margin="0,0,0,14">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Button Width="240" Height="80" Margin="0,0,10,8"
+                            Style="{StaticResource OptCardStyle}"
+                            Click="Preset_Click"
+                            Tag="{Binding}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Border Width="40" Height="40" CornerRadius="10"
+                                    Background="{DynamicResource PrimaryLightBrush}"
+                                    VerticalAlignment="Center">
+                                <TextBlock Text="{Binding IconCode}" FontSize="18"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
+                                <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="{Binding Description}" FontSize="11"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           TextWrapping="Wrap" TextTrimming="CharacterEllipsis" MaxHeight="28"
+                                           Margin="0,3,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                    </Button>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- Row 2: Category chips -->
+        <ItemsControl x:Name="ChipTabs" Grid.Row="2" ItemsSource="{Binding Categories}" Margin="0,0,0,14">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Border Style="{StaticResource ChipBorderStyle}"
+                            MouseLeftButtonDown="Category_Click">
+                        <TextBlock Text="{Binding}" FontSize="13"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"/>
+                    </Border>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- Row 3: Settings list -->
+        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding Groups}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Margin="0,0,0,8">
+                            <TextBlock Text="{Binding CategoryName}" FontSize="15" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,10"/>
+                            <ItemsControl ItemsSource="{Binding Items}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <controls:SettingRow/>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- Row 4: Restore bar -->
+        <Border Grid.Row="4" Margin="0,12,0,0" Padding="14,10"
+                Background="{DynamicResource CardBackgroundBrush}"
+                CornerRadius="10" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+            <WrapPanel HorizontalAlignment="Center">
+                <TextBlock Text="恢复默认：" FontSize="12" VerticalAlignment="Center"
+                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,10,0"/>
+                <Button Content="资源管理器" Click="RestoreCategory_Click" Tag="资源管理器"
+                        Style="{StaticResource OptCardStyle}"
+                        Padding="10,5" FontSize="11" Margin="0,0,6,4"/>
+                <Button Content="个性化" Click="RestoreCategory_Click" Tag="个性化"
+                        Style="{StaticResource OptCardStyle}"
+                        Padding="10,5" FontSize="11" Margin="0,0,6,4"/>
+                <Button Content="桌面" Click="RestoreCategory_Click" Tag="桌面"
+                        Style="{StaticResource OptCardStyle}"
+                        Padding="10,5" FontSize="11" Margin="0,0,6,4"/>
+                <Button Content="任务栏" Click="RestoreCategory_Click" Tag="任务栏"
+                        Style="{StaticResource OptCardStyle}"
+                        Padding="10,5" FontSize="11" Margin="0,0,6,4"/>
+                <Button Content="开始菜单" Click="RestoreCategory_Click" Tag="开始菜单"
+                        Style="{StaticResource OptCardStyle}"
+                        Padding="10,5" FontSize="11" Margin="0,0,6,4"/>
+                <Button Content="系统界面" Click="RestoreCategory_Click" Tag="系统界面"
+                        Style="{StaticResource OptCardStyle}"
+                        Padding="10,5" FontSize="11" Margin="0,0,6,4"/>
+                <Button Content="隐私与搜索" Click="RestoreCategory_Click" Tag="隐私与搜索"
+                        Style="{StaticResource OptCardStyle}"
+                        Padding="10,5" FontSize="11" Margin="0,0,6,4"/>
+                <Button Content="性能与电源" Click="RestoreCategory_Click" Tag="性能与电源"
+                        Style="{StaticResource OptCardStyle}"
+                        Padding="10,5" FontSize="11" Margin="0,0,6,4"/>
+                <Button Content="安全与更新" Click="RestoreCategory_Click" Tag="安全与更新"
+                        Style="{StaticResource OptCardStyle}"
+                        Padding="10,5" FontSize="11" Margin="0,0,6,4"/>
+                <Border Width="1" Background="{DynamicResource BorderBrush}" Margin="6,2"/>
+                <Button Content="恢复全部" Click="RestoreAll_Click"
+                        Background="#EF4444" Foreground="White"
+                        BorderThickness="0" Padding="14,5" FontSize="11" FontWeight="SemiBold"
+                        Cursor="Hand" Margin="6,0,0,4">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" CornerRadius="6"
+                                    Padding="{TemplateBinding Padding}">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </WrapPanel>
+        </Border>
+    </Grid>
+</UserControl>

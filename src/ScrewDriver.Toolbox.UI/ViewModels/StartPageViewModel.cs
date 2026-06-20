@@ -1,7 +1,9 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Input;
 using ScrewDriver.Toolbox.Core;
 using ScrewDriver.Toolbox.Core.Models;
@@ -26,13 +28,13 @@ public class StartPageViewModel : BaseViewModel
     public string SearchText
     {
         get => _searchText;
-        set { if (SetProperty(ref _searchText, value)) FilterTools(); }
+        set { if (SetProperty(ref _searchText, value)) _toolsView.Refresh(); }
     }
 
     public string SelectedCategory
     {
         get => _selectedCategory;
-        set { if (SetProperty(ref _selectedCategory, value)) FilterTools(); }
+        set { if (SetProperty(ref _selectedCategory, value)) _toolsView.Refresh(); }
     }
 
     public string WindowsVersion
@@ -58,10 +60,19 @@ public class StartPageViewModel : BaseViewModel
     public ICommand TogglePinCommand { get; }
     public ICommand RemoveToolCommand { get; }
 
+    private readonly ICollectionView _toolsView;
     private readonly HashSet<string> _hiddenTools = new();
+    private static readonly JsonConfigManager _config = new(AppDomain.CurrentDomain.BaseDirectory);
 
     public StartPageViewModel()
     {
+        var saved = _config.Load<HiddenToolsModel>("hidden-tools");
+        if (saved?.Names != null)
+        {
+            foreach (var name in saved.Names)
+                _hiddenTools.Add(name);
+        }
+
         // Build category list from registry
         Categories.AddRange(ToolRegistry.Categories);
 
@@ -82,15 +93,22 @@ public class StartPageViewModel : BaseViewModel
             if (param is string name)
             {
                 _hiddenTools.Add(name);
+                _config.Save("hidden-tools", new HiddenToolsModel { Names = _hiddenTools.ToList() });
                 RefreshFromCache();
             }
         });
 
-        InstalledToolsCache.Instance.CacheUpdated += OnCacheUpdated;
+        _toolsView = CollectionViewSource.GetDefaultView(FilteredTools);
+        _toolsView.Filter = FilterToolItem;
+        _toolsView.SortDescriptions.Add(new SortDescription("IsPinned", ListSortDirection.Descending));
+        _toolsView.SortDescriptions.Add(new SortDescription("Name", ListSortDirection.Ascending));
+
+        WeakEventManager<InstalledToolsCache, EventArgs>.AddHandler(
+            InstalledToolsCache.Instance, nameof(InstalledToolsCache.CacheUpdated), OnCacheUpdated);
         RefreshFromCache();
     }
 
-    private void OnCacheUpdated()
+    private void OnCacheUpdated(object? sender, EventArgs e)
     {
         Application.Current.Dispatcher.Invoke(RefreshFromCache);
     }
@@ -98,29 +116,30 @@ public class StartPageViewModel : BaseViewModel
     private void RefreshFromCache()
     {
         FilteredTools.Clear();
-        // 合并已安装工具 + Tools 目录中的额外工具
         var all = new List<ToolItem>();
         all.AddRange(InstalledToolsCache.Instance.InstalledTools);
         all.AddRange(InstalledToolsCache.Instance.ToolsFolderTools);
 
-        // 启动页显示所有已安装工具 + Tools 工具（排除已隐藏的）
-        IEnumerable<ToolItem> filtered = all.Where(t => !_hiddenTools.Contains(t.Name));
-
-        if (!string.IsNullOrEmpty(SearchText))
-            filtered = filtered.Where(t =>
-                t.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
-                t.Description.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
-
-        if (SelectedCategory != "全部")
-            filtered = filtered.Where(t => t.Category == SelectedCategory);
-
-        filtered = filtered.OrderByDescending(t => t.IsPinned).ThenBy(t => t.Name);
-
-        foreach (var t in filtered)
+        foreach (var t in all.Where(t => !_hiddenTools.Contains(t.Name)))
             FilteredTools.Add(t);
     }
 
-    private void FilterTools() => RefreshFromCache();
+    private bool FilterToolItem(object obj)
+    {
+        if (obj is not ToolItem tool) return false;
+
+        if (!string.IsNullOrWhiteSpace(SearchText))
+        {
+            if (!tool.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) &&
+                !tool.Description.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
+                return false;
+        }
+
+        if (SelectedCategory != "全部" && tool.Category != SelectedCategory)
+            return false;
+
+        return true;
+    }
 
     private static void LaunchTool(object? parameter)
     {
@@ -146,3 +165,5 @@ public class StartPageViewModel : BaseViewModel
         }
     }
 }
+
+internal class HiddenToolsModel { public List<string> Names { get; set; } = new(); }

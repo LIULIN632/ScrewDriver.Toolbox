@@ -19,6 +19,14 @@ public enum RecommendedAction
     Disable
 }
 
+public enum SettingControlType
+{
+    Toggle,
+    ComboBox,
+    RadioGroup,
+    ActionButton
+}
+
 public class SystemSettingItem : IRiskOperation, INotifyPropertyChanged
 {
     public string Id { get; set; } = string.Empty;
@@ -33,13 +41,46 @@ public class SystemSettingItem : IRiskOperation, INotifyPropertyChanged
         get => _isEnabled;
         set
         {
+            if (_isEnabled == value) return;
             _isEnabled = value;
             OnPropertyChanged();
+            OnPropertyChanged(nameof(StatusText));
+            OnPropertyChanged(nameof(StatusColor));
         }
+    }
+
+    public void IsEnabledSilent(bool value)
+    {
+        if (_isEnabled == value) return;
+        _isEnabled = value;
     }
     public bool IsDangerous => RiskLevel == RiskLevel.Dangerous;
     public string StatusText => IsEnabled ? "已开启" : "已关闭";
     public string StatusColor => IsEnabled ? "#22C55E" : "#999999";
+
+    public string RiskLabel => RiskLevel switch
+    {
+        RiskLevel.Recommended => "安全",
+        RiskLevel.Optional => "高级",
+        RiskLevel.Dangerous => "危险",
+        _ => ""
+    };
+
+    public string RiskBadgeColor => RiskLevel switch
+    {
+        RiskLevel.Recommended => "#22C55E",
+        RiskLevel.Optional => "#F59E0B",
+        RiskLevel.Dangerous => "#EF4444",
+        _ => "#999999"
+    };
+
+    public string RecommendationBadgeColor => Recommendation switch
+    {
+        RecommendedAction.Enable => "#22C55E",
+        RecommendedAction.Disable => "#EF4444",
+        _ => "#999999"
+    };
+
     public string RiskDescription { get; set; } = string.Empty;
     public RiskLevel RiskLevel { get; set; }
     public RecommendedAction Recommendation { get; set; }
@@ -54,6 +95,9 @@ public class SystemSettingItem : IRiskOperation, INotifyPropertyChanged
     public string OperationType { get; set; } = "Registry";
     public string? EnablePsCommand { get; set; }
     public string? DisablePsCommand { get; set; }
+    public SettingControlType ControlType { get; set; } = SettingControlType.Toggle;
+    public ObservableCollection<string> Options { get; set; } = new();
+    public string? ActionCommand { get; set; }
 
     public event PropertyChangedEventHandler? PropertyChanged;
     protected void OnPropertyChanged([CallerMemberName] string? name = null)

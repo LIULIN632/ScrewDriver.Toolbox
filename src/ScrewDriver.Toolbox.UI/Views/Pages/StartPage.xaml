@@ -1,0 +1,116 @@
+<UserControl x:Class="ScrewDriver.Toolbox.UI.Views.Pages.StartPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="32,36">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 标题 -->
+        <TextBlock Grid.Row="0" Text="已安装工具" FontSize="28" FontWeight="SemiBold"
+                   Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,20"/>
+
+        <!-- 搜索 -->
+        <Border Grid.Row="1" Background="{DynamicResource CardBackgroundBrush}"
+                CornerRadius="10" Padding="8,4" Margin="0,0,0,24"
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1"
+                MaxWidth="400" HorizontalAlignment="Left">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="🔍" FontSize="14" VerticalAlignment="Center" Margin="4,0,8,0"
+                           Foreground="{DynamicResource TextTertiaryBrush}"/>
+                <TextBox Grid.Column="1" Style="{StaticResource SearchBoxStyle}"
+                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         FontSize="14"/>
+                <Button Grid.Column="2" Content="✕" FontSize="12"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Width="24" Height="24" Padding="0"
+                        Command="{Binding ClearSearchCommand}"/>
+            </Grid>
+        </Border>
+
+        <!-- 内置工具快捷栏 -->
+        <UniformGrid Grid.Row="2" Columns="6" Rows="1"
+                     VerticalAlignment="Top" Margin="0,0,0,0">
+            <Button Style="{StaticResource NavButtonHover}" Margin="0,0,4,0"
+                    Click="BuiltInHosts_Click">
+                <StackPanel HorizontalAlignment="Center">
+                    <TextBlock Text="📝" FontSize="28" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Hosts 编辑器" FontSize="13" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Button>
+            <Button Style="{StaticResource NavButtonHover}" Margin="2,0"
+                    Click="BuiltInKms_Click">
+                <StackPanel HorizontalAlignment="Center">
+                    <TextBlock Text="🔑" FontSize="28" HorizontalAlignment="Center"/>
+                    <TextBlock Text="KMS 激活查询" FontSize="13" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Button>
+            <Button Style="{StaticResource NavButtonHover}" Margin="2,0"
+                    Click="BuiltInWifi_Click">
+                <StackPanel HorizontalAlignment="Center">
+                    <TextBlock Text="📶" FontSize="28" HorizontalAlignment="Center"/>
+                    <TextBlock Text="WiFi 密码查看" FontSize="13" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Button>
+            <Button Style="{StaticResource NavButtonHover}" Margin="2,0"
+                    Click="BuiltInCert_Click">
+                <StackPanel HorizontalAlignment="Center">
+                    <TextBlock Text="🛡️" FontSize="28" HorizontalAlignment="Center"/>
+                    <TextBlock Text="证书管理器" FontSize="13" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Button>
+            <Button Style="{StaticResource NavButtonHover}" Margin="2,0"
+                    Click="BuiltInUninstall_Click">
+                <StackPanel HorizontalAlignment="Center">
+                    <TextBlock Text="🗑️" FontSize="28" HorizontalAlignment="Center"/>
+                    <TextBlock Text="软件卸载工具" FontSize="13" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Button>
+            <Button Style="{StaticResource NavButtonHover}" Margin="4,0,0,0"
+                    Click="BuiltInClean_Click">
+                <StackPanel HorizontalAlignment="Center">
+                    <TextBlock Text="🧹" FontSize="28" HorizontalAlignment="Center"/>
+                    <TextBlock Text="磁盘清理工具" FontSize="13" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Button>
+        </UniformGrid>
+
+        <!-- 底部信息栏 -->
+        <Border Grid.Row="3" Background="{DynamicResource NavBackgroundBrush}"
+                CornerRadius="8" Padding="14,12" Margin="0,0,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <TextBlock FontSize="13" Foreground="{DynamicResource TextTertiaryBrush}" Margin="0,0,28,0">
+                    <Run Text="Windows: "/>
+                    <Run Text="{Binding WindowsVersion, Mode=OneWay}"/>
+                </TextBlock>
+                <TextBlock FontSize="13" Foreground="{DynamicResource PrimaryBrush}" Margin="0,0,28,0">
+                    <Run Text="{Binding IsAdmin, Mode=OneWay}"/>
+                </TextBlock>
+                <TextBlock FontSize="13" Foreground="{DynamicResource TextTertiaryBrush}">
+                    <Run Text="设备: "/>
+                    <Run Text="{Binding DeviceBrand, Mode=OneWay}"/>
+                </TextBlock>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

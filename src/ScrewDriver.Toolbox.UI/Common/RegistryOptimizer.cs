@@ -46,6 +46,39 @@ public static class RegistryOptimizer
         catch { return false; }
     }
 
+    public static bool ApplySettingById(string id, bool enable)
+    {
+        var map = new Dictionary<string, (string subKey, string valueName, int trueVal)>
+        {
+            ["ad-id"] = (@"SOFTWARE\Microsoft\Windows\CurrentVersion\AdvertisingInfo", "Enabled", 0),
+            ["telemetry"] = (@"SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection", "AllowTelemetry", 0),
+            ["activity-history"] = (@"SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\activity", "Value", 0),
+            ["disable-tips"] = (@"SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SubscribedContent-338389Enabled", 0),
+            ["show-extensions"] = (@"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "HideFileExt", 0),
+            ["show-hidden-files"] = (@"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "Hidden", 1),
+            ["classic-context"] = (@"SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "UseWin11ContextMenu", 0),
+            ["disable-widgets"] = (@"SOFTWARE\Policies\Microsoft\Windows\Windows Feeds", "EnableFeeds", 0),
+            ["power-plan-high"] = ("power", "high", 1),
+        };
+
+        if (!map.TryGetValue(id, out var entry)) return false;
+
+        if (entry.subKey == "power")
+        {
+            // 电源计划特殊处理
+            try
+            {
+                var psi = new System.Diagnostics.ProcessStartInfo("powercfg.exe", "/setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c")
+                { UseShellExecute = true, Verb = "runas" };
+                System.Diagnostics.Process.Start(psi);
+                return true;
+            }
+            catch { return false; }
+        }
+
+        return WriteBool(entry.subKey, entry.valueName, enable, entry.trueVal);
+    }
+
     public static bool WriteBool(string keyPath, string valueName, bool enable, int trueVal = 1, int falseVal = 0)
     {
         try
