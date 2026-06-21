@@ -2,19 +2,17 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using ScrewDriver.Toolbox.Core.Models;
 using ScrewDriver.Toolbox.UI.ViewModels;
-using Button = System.Windows.Controls.Button;
 using Brush = System.Windows.Media.Brush;
 using Brushes = System.Windows.Media.Brushes;
 
 namespace ScrewDriver.Toolbox.UI.Views.Pages;
 
-public partial class SystemSettingsProPage : System.Windows.Controls.UserControl
+public partial class SoftwareOptimizePage : System.Windows.Controls.UserControl
 {
-    private SystemSettingsProViewModel? _vm;
+    private SoftwareOptimizeViewModel? _vm;
 
-    public SystemSettingsProPage()
+    public SoftwareOptimizePage()
     {
         InitializeComponent();
         DataContextChanged += OnDataContextChanged;
@@ -26,15 +24,15 @@ public partial class SystemSettingsProPage : System.Windows.Controls.UserControl
         if (_vm != null)
             _vm.PropertyChanged -= OnViewModelPropertyChanged;
 
-        _vm = DataContext as SystemSettingsProViewModel;
+        _vm = DataContext as SoftwareOptimizeViewModel;
         if (_vm != null)
             _vm.PropertyChanged += OnViewModelPropertyChanged;
     }
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(SystemSettingsProViewModel.SelectedCategory))
-            Dispatcher.Invoke(() => HighlightChip(_vm!.SelectedCategory));
+        if (e.PropertyName == nameof(SoftwareOptimizeViewModel.SelectedSoftware))
+            Dispatcher.Invoke(() => HighlightChip(_vm!.SelectedSoftware));
     }
 
     private void OnPageUnloaded(object sender, RoutedEventArgs e)
@@ -46,28 +44,13 @@ public partial class SystemSettingsProPage : System.Windows.Controls.UserControl
         }
     }
 
-    private void Category_Click(object sender, MouseButtonEventArgs e)
+    private void Chip_Click(object sender, MouseButtonEventArgs e)
     {
-        if (sender is Border border && border.DataContext is string cat)
+        if (sender is Border border && border.DataContext is string software)
         {
-            if (DataContext is SystemSettingsProViewModel vm)
-                vm.SelectedCategory = cat;
+            if (DataContext is SoftwareOptimizeViewModel vm)
+                vm.SelectedSoftware = software;
         }
-    }
-
-    private void RestoreCategory_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is Button btn && btn.Tag is string cat)
-        {
-            if (DataContext is SystemSettingsProViewModel vm)
-                vm.RestoreCategory(cat);
-        }
-    }
-
-    private void RestoreAll_Click(object sender, RoutedEventArgs e)
-    {
-        if (DataContext is SystemSettingsProViewModel vm)
-            vm.RestoreAll();
     }
 
     private void HighlightChip(string active)

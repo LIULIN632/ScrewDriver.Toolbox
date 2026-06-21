@@ -58,23 +58,16 @@
                        TextWrapping="Wrap" TextTrimming="CharacterEllipsis"
                        MaxHeight="32" Margin="0,4,0,0"/>
 
-            <!-- Row 2: Status detail bar -->
+            <!-- Row 2: Status detail bar (adjacent TextBlocks instead of Run — avoids WPF Run binding bugs) -->
             <StackPanel Grid.Column="1" Grid.Row="2" Orientation="Horizontal" Margin="0,6,0,0">
-                <TextBlock FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}">
-                    <Run Text="当前: "/>
-                    <Run Text="{Binding StatusText}" Foreground="{Binding StatusColor, Converter={StaticResource StringToBrush}}"/>
-                </TextBlock>
-                <TextBlock Text=" · " FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}"/>
-                <TextBlock FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}">
-                    <Run Text="建议: "/>
-                    <Run Text="{Binding RecommendationText, FallbackValue=—}"
-                         Foreground="{Binding RecommendationBadgeColor, Converter={StaticResource StringToBrush}}"/>
-                </TextBlock>
-                <TextBlock Text=" · " FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}"/>
-                <TextBlock FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}">
-                    <Run Text="方式: "/>
-                    <Run Text="{Binding OperationType}" Foreground="#999999"/>
-                </TextBlock>
+                <TextBlock Text="当前: " FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                <TextBlock Text="{Binding StatusText}" FontSize="11"
+                           Foreground="{Binding StatusColor, Converter={StaticResource StringToBrush}}"/>
+                <TextBlock Text=" · 建议: " FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                <TextBlock Text="{Binding RecommendationText, FallbackValue=—}" FontSize="11"
+                           Foreground="{Binding RecommendationBadgeColor, Converter={StaticResource StringToBrush}}"/>
+                <TextBlock Text=" · 方式: " FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                <TextBlock Text="{Binding OperationType}" FontSize="11" Foreground="#999999"/>
             </StackPanel>
         </Grid>
     </Border>

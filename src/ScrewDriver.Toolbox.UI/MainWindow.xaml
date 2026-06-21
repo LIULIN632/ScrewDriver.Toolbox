@@ -17,6 +17,7 @@
         <DataTemplate DataType="{x:Type vm:StartPageViewModel}"><pages:StartPage/></DataTemplate>
         <DataTemplate DataType="{x:Type vm:ToolRepositoryViewModel}"><pages:ToolRepositoryPage/></DataTemplate>
         <DataTemplate DataType="{x:Type vm:SystemSettingsProViewModel}"><pages:SystemSettingsProPage/></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SoftwareOptimizeViewModel}"><pages:SoftwareOptimizePage/></DataTemplate>
         <DataTemplate DataType="{x:Type vm:PresetsViewModel}"><pages:PresetsPage/></DataTemplate>
         <DataTemplate DataType="{x:Type vm:RepairCenterViewModel}"><pages:RepairCenterPage/></DataTemplate>
         <DataTemplate DataType="{x:Type vm:HardwareViewModel}"><pages:HardwarePage/></DataTemplate>

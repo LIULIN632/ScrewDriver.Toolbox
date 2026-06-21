@@ -327,7 +327,7 @@ public class SystemOptimizerService : ISystemOptimizerService
         }
     }
 
-    public List<PresetDefinition> GetPresetDefinitions()
+    public List<PresetDefinition> GetDefaultPresetDefinitions()
     {
         var all = GetAllSettings();
 
@@ -385,33 +385,94 @@ public class SystemOptimizerService : ISystemOptimizerService
             ["vbs"] = true, // disable VBS for more performance
         };
 
+        // 新机到手设置：基于小黑盒「新电脑新机到手必做设置」文章，20 项
+        var newPcSetupTargets = new Dictionary<string, bool>
+        {
+            // 桌面图标
+            ["show-this-pc"] = true,
+            ["show-control-panel-desktop"] = true,
+            // 隐私
+            ["ad-id"] = true,
+            ["disable-tailored-experiences"] = true,
+            ["disable-tips"] = true,
+            ["telemetry"] = true,
+            // 任务栏
+            ["disable-widgets"] = true,
+            ["disable-search-highlights"] = true,
+            ["disable-news-interests"] = true,
+            // 开始菜单
+            ["disable-suggestions-in-start"] = true,
+            ["disable-cortana"] = true,
+            // 资源管理器
+            ["show-extensions"] = true,
+            ["classic-context"] = true,
+            ["expand-to-current-folder"] = true,
+            ["show-full-path-in-title"] = true,
+            ["open-to-pc"] = true,
+            // 系统界面
+            ["enable-numlock"] = true,
+            ["disable-sticky-keys"] = true,
+            // 性能与更新
+            ["power-plan-high"] = true,
+            ["noauto-update"] = true,
+        };
+
         return new List<PresetDefinition>
         {
             new()
             {
                 Id = "new-pc",
                 Name = "新机推荐",
-                Description = "一键启用所有推荐的安全优化项，适合新电脑或重装系统后使用",
-                IconCode = "",
+                Tag = "推荐 · 安全",
+                Description = "一键启用所有推荐的安全优化项，关闭广告跟踪、遥测数据、活动历史，适合新电脑或重装系统后初始化使用",
+                IconCode = "🛡️",
+                Scene = "新装系统/重装系统后初始化，追求隐私安全无广告，不改动系统核心功能",
+                Effect = "关闭广告跟踪、遥测收集、冗余弹窗，降低后台隐私泄露风险，无副作用",
+                Notice = "仅修改系统界面和隐私配置，不影响系统更新、安全防护、硬件驱动，新手可放心使用",
                 TargetStates = newPcTargets
+            },
+            new()
+            {
+                Id = "new-pc-setup",
+                Name = "新机到手设置",
+                Tag = "必做 · 全面",
+                Description = "基于小黑盒新机攻略：桌面图标、隐私四项全关、任务栏精简、资源管理器增强、高性能电源、暂停更新，一步到位",
+                IconCode = "🆕",
+                Scene = "新电脑开箱 / 重装系统后第一步，覆盖桌面、隐私、资源管理器、电源、更新等核心配置",
+                Effect = "桌面显示此电脑+控制面板，关闭广告跟踪与遥测，精简任务栏和开始菜单，开启高性能电源，暂停自动更新",
+                Notice = "含暂停 Windows Update 操作，后续可手动恢复。Nvidia 显卡驱动设置和存储感知需手动操作",
+                TargetStates = newPcSetupTargets
             },
             new()
             {
                 Id = "minimal",
                 Name = "极简模式",
-                Description = "关闭小组件、搜索亮点、锁屏、动画、开始菜单推荐等干扰项，打造清爽体验",
-                IconCode = "",
+                Tag = "界面精简",
+                Description = "关闭小组件、搜索框、动画效果、任务视图，精简系统界面，降低资源占用，追求纯净桌面体验",
+                IconCode = "🎯",
+                Scene = "追求纯净桌面体验，不需要小组件、搜索框等冗余功能",
+                Effect = "精简任务栏、开始菜单、资源管理器，减少UI动画资源占用，桌面更清爽",
+                Notice = "所有界面修改均可一键恢复，不会破坏系统文件，部分设置需重启资源管理器生效",
                 TargetStates = minimalTargets
             },
             new()
             {
                 Id = "old-pc",
                 Name = "老电脑优化",
-                Description = "关闭视觉效果和后台服务，启用游戏模式和高性能电源，最大化老电脑性能",
-                IconCode = "",
+                Tag = "性能优先",
+                Description = "关闭动画效果、启用高性能电源计划、禁用 VBS，最大化释放硬件性能，适合低配置老旧设备",
+                IconCode = "⚡",
+                Scene = "低配置老旧电脑、机械硬盘设备，优先保证运行流畅度",
+                Effect = "释放 10%-20% 内存和磁盘占用，提升开机和操作流畅度",
+                Notice = "关闭 VBS 会降低系统安全性，但可显著提升游戏和日常使用性能。所有设置均可恢复",
                 TargetStates = oldPcTargets
             }
         };
+    }
+
+    public List<PresetDefinition> GetPresetDefinitions()
+    {
+        return PresetStore.LoadPresets(GetDefaultPresetDefinitions);
     }
 
     public void RestoreCategory(IEnumerable<string> ids)

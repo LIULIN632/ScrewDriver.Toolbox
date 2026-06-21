@@ -11,6 +11,9 @@ public class RepairScenario : INotifyPropertyChanged
     public List<string> Commands { get; set; } = new();
     public List<string> DetectCommands { get; set; } = new();
 
+    public Func<RepairScenario, Task<bool>>? CustomDetect { get; set; }
+    public Func<RepairScenario, Task>? CustomRepair { get; set; }
+
     private string _status = "未检测";
     public string Status
     {
@@ -23,6 +26,13 @@ public class RepairScenario : INotifyPropertyChanged
     {
         get => _statusColor;
         set { _statusColor = value; OnPropertyChanged(); }
+    }
+
+    private string? _detailsText;
+    public string? DetailsText
+    {
+        get => _detailsText;
+        set { _detailsText = value; OnPropertyChanged(); }
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

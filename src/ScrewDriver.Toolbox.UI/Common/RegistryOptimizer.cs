@@ -46,6 +46,30 @@ public static class RegistryOptimizer
         catch { return false; }
     }
 
+    public static int ReadDwordHKLM(string subKey, string valueName, int defaultValue = 0)
+    {
+        try
+        {
+            using var key = Registry.LocalMachine.OpenSubKey(subKey);
+            if (key == null) return defaultValue;
+            var val = key.GetValue(valueName);
+            return val is int i ? i : defaultValue;
+        }
+        catch { return defaultValue; }
+    }
+
+    public static bool WriteDwordHKLM(string subKey, string valueName, int value)
+    {
+        try
+        {
+            using var key = Registry.LocalMachine.CreateSubKey(subKey, true);
+            if (key == null) return false;
+            key.SetValue(valueName, value, RegistryValueKind.DWord);
+            return true;
+        }
+        catch { return false; }
+    }
+
     public static bool ApplySettingById(string id, bool enable)
     {
         var map = new Dictionary<string, (string subKey, string valueName, int trueVal)>

@@ -4,6 +4,7 @@ using System.IO;
 using System.Windows;
 using ScrewDriver.Toolbox.Core.Models;
 using ScrewDriver.Toolbox.Core.Services;
+using ScrewDriver.Toolbox.SystemTools.Services;
 using MessageBox = System.Windows.MessageBox;
 
 namespace ScrewDriver.Toolbox.UI.ViewModels;
@@ -11,6 +12,7 @@ namespace ScrewDriver.Toolbox.UI.ViewModels;
 public class RepairCenterViewModel : BaseViewModel
 {
     private readonly RecentToolsService _recentService = new();
+    private readonly FileRepairService _fileRepair = new();
 
     public ObservableCollection<RepairScenario> Scenarios { get; } = new();
     public ObservableCollection<ToolItem> InstalledTools { get; } = new();
@@ -58,26 +60,36 @@ public class RepairCenterViewModel : BaseViewModel
                 }
             }
 
+            var stepDesc = scenario.CustomRepair != null
+                ? "自动修复"
+                : $"{scenario.Commands.Count} 个步骤";
             var result = MessageBox.Show(
-                $"即将执行「{scenario.Name}」修复方案，共 {scenario.Commands.Count} 个步骤。\n\n确定继续？",
+                $"即将执行「{scenario.Name}」修复方案，{stepDesc}。\n\n确定继续？",
                 "确认修复", MessageBoxButton.YesNo, MessageBoxImage.Question);
 
             if (result != MessageBoxResult.Yes) return;
 
-            foreach (var cmd in scenario.Commands)
+            if (scenario.CustomRepair != null)
             {
-                try
+                await scenario.CustomRepair(scenario);
+            }
+            else
+            {
+                foreach (var cmd in scenario.Commands)
                 {
-                    Process.Start(new ProcessStartInfo("cmd.exe", $"/c {cmd}")
+                    try
                     {
-                        CreateNoWindow = true,
-                        UseShellExecute = false
-                    })?.WaitForExit(10000);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"执行失败: {cmd}\n\n{ex.Message}", "错误",
-                        MessageBoxButton.OK, MessageBoxImage.Error);
+                        Process.Start(new ProcessStartInfo("cmd.exe", $"/c {cmd}")
+                        {
+                            CreateNoWindow = true,
+                            UseShellExecute = false
+                        })?.WaitForExit(10000);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"执行失败: {cmd}\n\n{ex.Message}", "错误",
+                            MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
                 }
             }
 
@@ -135,37 +147,46 @@ public class RepairCenterViewModel : BaseViewModel
         scenario.Status = "检测中...";
         scenario.StatusColor = "#2563EB";
 
-        var hasIssue = false;
-        foreach (var cmd in scenario.DetectCommands)
+        bool hasIssue;
+
+        if (scenario.CustomDetect != null)
         {
-            try
+            hasIssue = await scenario.CustomDetect(scenario);
+        }
+        else
+        {
+            hasIssue = false;
+            foreach (var cmd in scenario.DetectCommands)
             {
-                var psi = new ProcessStartInfo("cmd.exe", $"/c {cmd}")
+                try
                 {
-                    RedirectStandardOutput = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-                var p = Process.Start(psi);
-                if (p != null)
-                {
-                    var output = await p.StandardOutput.ReadToEndAsync();
-                    await p.WaitForExitAsync();
-                    if (!string.IsNullOrWhiteSpace(output))
+                    var psi = new ProcessStartInfo("cmd.exe", $"/c {cmd}")
                     {
-                        hasIssue = true;
-                        break;
+                        RedirectStandardOutput = true,
+                        UseShellExecute = false,
+                        CreateNoWindow = true
+                    };
+                    var p = Process.Start(psi);
+                    if (p != null)
+                    {
+                        var output = await p.StandardOutput.ReadToEndAsync();
+                        await p.WaitForExitAsync();
+                        if (!string.IsNullOrWhiteSpace(output))
+                        {
+                            hasIssue = true;
+                            break;
+                        }
                     }
                 }
+                catch { }
             }
-            catch { }
         }
 
         scenario.Status = hasIssue ? "检测到问题" : "一切正常";
         scenario.StatusColor = hasIssue ? "#DC2626" : "#22C55E";
     }
 
-    private static List<RepairScenario> BuildScenarios() => new()
+    private List<RepairScenario> BuildScenarios() => new()
     {
         new()
         {
@@ -209,11 +230,101 @@ public class RepairCenterViewModel : BaseViewModel
         },
         new()
         {
-            Name = "软件打不开",
-            Cause = "文件关联错误或默认程序设置异常",
-            Description = "打开默认程序设置面板",
-            DetectCommands = new List<string> { "assoc .txt | findstr txtfile >nul 2>&1 || echo 文件关联异常" },
-            Commands = new List<string> { "start control /name Microsoft.DefaultPrograms" }
+            Name = "文件异常修复",
+            Cause = "文件关联被篡改、程序路径缺失、文件被进程锁定",
+            Description = "扫描关键文件关联和常见目录的文件占用，一键修复异常",
+
+            CustomDetect = async scenario =>
+            {
+                var assocIssues = await Task.Run(() => _fileRepair.ScanAssociations());
+                var lockIssues = await Task.Run(() => _fileRepair.ScanFileLocks());
+
+                var sb = new System.Text.StringBuilder();
+
+                if (assocIssues.Count > 0)
+                {
+                    sb.AppendLine($"\U0001F4C4 文件关联异常 ({assocIssues.Count} 项):");
+                    foreach (var issue in assocIssues)
+                        sb.AppendLine($"  • {issue.Extension} — {issue.Issue}");
+                    sb.AppendLine();
+                }
+
+                if (lockIssues.Count > 0)
+                {
+                    sb.AppendLine($"\U0001F512 文件被占用 ({lockIssues.Count} 项):");
+                    foreach (var lk in lockIssues)
+                        sb.AppendLine($"  • {Path.GetFileName(lk.FilePath)} — {lk.ProcessName} (PID: {lk.ProcessId})");
+                }
+
+                if (sb.Length == 0)
+                    sb.AppendLine("未发现文件异常问题");
+
+                scenario.DetailsText = sb.ToString().TrimEnd();
+                return assocIssues.Count > 0 || lockIssues.Count > 0;
+            },
+
+            CustomRepair = async scenario =>
+            {
+                var assocIssues = await Task.Run(() => _fileRepair.ScanAssociations());
+                var lockIssues = await Task.Run(() => _fileRepair.ScanFileLocks());
+
+                var backupDir = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "ScrewDriver.Toolbox", "Backup", "FileAssoc");
+
+                var fixedAssoc = 0;
+                foreach (var issue in assocIssues)
+                {
+                    try
+                    {
+                        await Task.Run(() => _fileRepair.RepairAssociation(issue.Extension, backupDir));
+                        fixedAssoc++;
+                    }
+                    catch { }
+                }
+
+                var unlocked = 0;
+                var pendingReboot = 0;
+                foreach (var lk in lockIssues)
+                {
+                    try
+                    {
+                        // Prefer Restart Manager gentle shutdown
+                        var rmOk = await Task.Run(() => FileRepairService.TryRmShutdown(lk.FilePath, lk.ProcessId));
+                        if (rmOk) { unlocked++; continue; }
+
+                        // RM failed — ask user before force kill
+                        var forceResult = MessageBox.Show(
+                            $"无法安全关闭 {lk.ProcessName} (PID: {lk.ProcessId})\n\n" +
+                            $"该进程正在占用:\n{lk.FilePath}\n\n" +
+                            "是否强制结束该进程？（可能导致未保存数据丢失）",
+                            "强制解锁", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+                        if (forceResult == MessageBoxResult.Yes)
+                        {
+                            var killed = await Task.Run(() => FileRepairService.ForceKillProcess(lk.ProcessId));
+                            if (killed) unlocked++;
+                            else { FileRepairService.MarkForDeleteOnReboot(lk.FilePath); pendingReboot++; }
+                        }
+                        else
+                        {
+                            FileRepairService.MarkForDeleteOnReboot(lk.FilePath);
+                            pendingReboot++;
+                        }
+                    }
+                    catch
+                    {
+                        FileRepairService.MarkForDeleteOnReboot(lk.FilePath);
+                        pendingReboot++;
+                    }
+                }
+
+                var msg = $"修复完成\n\n文件关联修复: {fixedAssoc}/{assocIssues.Count}\n文件解锁: {unlocked}/{lockIssues.Count}";
+                if (pendingReboot > 0)
+                    msg += $"\n\n{pendingReboot} 个文件已标记为重启后删除";
+
+                MessageBox.Show(msg, "修复完成", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
         }
     };
 }

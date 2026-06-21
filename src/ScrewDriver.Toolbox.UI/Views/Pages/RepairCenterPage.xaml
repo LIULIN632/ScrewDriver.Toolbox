@@ -5,6 +5,7 @@
     <UserControl.Resources>
         <conv:IconPathConverter x:Key="IconPathConverter"/>
         <conv:BoolToVisibilityConverter x:Key="BoolToVis"/>
+        <conv:StringToVisibilityConverter x:Key="StringToVis"/>
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -36,6 +37,7 @@
                                         <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="*"/>
                                         <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
                                     </Grid.RowDefinitions>
                                     <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold"
                                                Foreground="{DynamicResource TextPrimaryBrush}"/>
@@ -44,7 +46,11 @@
                                     <TextBlock Grid.Row="2" Text="{Binding Description}" FontSize="13"
                                                Foreground="{DynamicResource TextSecondaryBrush}"
                                                TextWrapping="Wrap" VerticalAlignment="Center" Margin="0,8,0,0"/>
-                                    <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,12,0,0">
+                                    <TextBlock Grid.Row="3" Text="{Binding DetailsText}" FontSize="11"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               TextWrapping="Wrap" Margin="0,8,0,0" MaxHeight="120"
+                                               Visibility="{Binding DetailsText, Converter={StaticResource StringToVis}}"/>
+                                    <StackPanel Grid.Row="4" Orientation="Horizontal" Margin="0,12,0,0">
                                         <TextBlock Text="{Binding Status}" FontSize="12"
                                                    Foreground="{Binding StatusColor, Converter={StaticResource StringToBrush}}"
                                                    VerticalAlignment="Center" Margin="0,0,8,0"/>

@@ -1,42 +1,34 @@
-#define AppName "ScrewDriver Toolbox"
-#define AppVersion "1.0.0"
-#define AppPublisher "ScrewDriver"
-#define AppURL "https://github.com/ScrewDriver/Toolbox"
-#define AppExeName "ScrewDriver.Toolbox.exe"
+#define MyAppName "ScrewDriver Toolbox"
+#define MyAppVersion "1.0.0"
+#define MyAppPublisher "ScrewDriver"
+#define MyAppExeName "ScrewDriver.Toolbox.exe"
 
 [Setup]
-AppId={{B8F4A3D2-7E6C-4A1B-9D5F-8C2E0A7B3F1D}}
-AppName={#AppName}
-AppVersion={#AppVersion}
-AppPublisher={#AppPublisher}
-AppCopyright=(C) 2026 {#AppPublisher}
-DefaultDirName={autopf}\{#AppName}
-DefaultGroupName={#AppName}
-AllowNoIcons=yes
-OutputDir=D:\AICAN\ScrewDriver.Toolbox
-OutputBaseFilename=ScrewDriver.Toolbox_Setup_v1.0.0
-Compression=lzma2/ultra64
+AppId={{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}
+AppName={#MyAppName}
+AppVersion={#MyAppVersion}
+AppPublisher={#MyAppPublisher}
+DefaultDirName={autopf}\{#MyAppName}
+DefaultGroupName={#MyAppName}
+OutputDir=D:\AICAN\ScrewDriver.Toolbox\installer
+OutputBaseFilename=ScrewDriver.Toolbox_Setup_v1.0.0_x64
+SetupIconFile=D:\AICAN\ScrewDriver.Toolbox\src\ScrewDriver.Toolbox.UI\app.ico
+Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern
 PrivilegesRequired=admin
-ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
-UninstallDisplayName={#AppName}
-UninstallDisplayIcon={app}\{#AppExeName}
-
-[Languages]
-Name: "english"; MessagesFile: "compiler:Default.isl"
-
-[Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
+DisableProgramGroupPage=yes
 
 [Files]
-Source: "D:\AICAN\ScrewDriver.Toolbox\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "D:\AICAN\ScrewDriver.Toolbox\publish_zip\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+[Tasks]
+Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional icons:"
 
 [Icons]
-Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"
-Name: "{group}\{cm:UninstallProgram,{#AppName}}"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Tasks: desktopicon
+Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 
 [Run]
-Filename: "{app}\{#AppExeName}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\{#MyAppExeName}"; Description: "Launch {#MyAppName}"; Flags: nowait postinstall skipifsilent

@@ -33,6 +33,7 @@ public class MainViewModel : BaseViewModel
     // Cached VMs for sub-category filtering
     private ToolRepositoryViewModel? _toolRepoVm;
     private SystemSettingsProViewModel? _settingsProVm;
+    private SoftwareOptimizeViewModel? _softwareOptimizeVm;
 
     public MainViewModel()
     {
@@ -68,6 +69,18 @@ public class MainViewModel : BaseViewModel
             Tag = "SystemSettingsProPage",
             SubItems = new ObservableCollection<NavigationItem>(SettingsCategories)
         });
+        NavigationItems.Add(new NavigationItem
+        {
+            Title = "软件优化",
+            IconCode = "🛠",
+            Tag = "SoftwareOptimizePage",
+            SubItems = new ObservableCollection<NavigationItem>
+            {
+                new() { Title = "Edge", Tag = "Software:Edge" },
+                new() { Title = "Office", Tag = "Software:Office" },
+                new() { Title = "WPS", Tag = "Software:WPS" },
+            }
+        });
         NavigationItems.Add(new NavigationItem { Title = "系统修复", IconCode = "🔧", Tag = "RepairCenterPage" });
         NavigationItems.Add(new NavigationItem { Title = "硬件信息", IconCode = "💻", Tag = "HardwarePage" });
         NavigationItems.Add(new NavigationItem { Title = "数据中心", IconCode = "📊", Tag = "DataCenterPage" });
@@ -98,11 +111,21 @@ public class MainViewModel : BaseViewModel
             return;
         }
 
+        if (tag.StartsWith("Software:"))
+        {
+            _softwareOptimizeVm ??= new SoftwareOptimizeViewModel();
+            _softwareOptimizeVm.SelectedSoftware = tag["Software:".Length..];
+            CurrentViewModel = _softwareOptimizeVm;
+            ExpandParent("SoftwareOptimizePage");
+            return;
+        }
+
         CurrentViewModel = tag switch
         {
             "StartPage" => new StartPageViewModel(),
             "ToolRepositoryPage" => (_toolRepoVm ??= new ToolRepositoryViewModel()),
             "SystemSettingsProPage" => NavigateToSettingsPro("全部"),
+            "SoftwareOptimizePage" => (_softwareOptimizeVm ??= new SoftwareOptimizeViewModel()),
             "RepairCenterPage" => new RepairCenterViewModel(),
             "HardwarePage" => new HardwareViewModel(),
             "DataCenterPage" => new DataCenterViewModel(),
@@ -112,13 +135,10 @@ public class MainViewModel : BaseViewModel
 
     }
 
-    private SystemSettingsProViewModel NavigateToSettingsPro(string category)
+    private BaseViewModel NavigateToSettingsPro(string category)
     {
         if (category == "一键预设")
-        {
-            CurrentViewModel = new PresetsViewModel();
-            return null!;
-        }
+            return new PresetsViewModel();
         _settingsProVm ??= new SystemSettingsProViewModel();
         _settingsProVm.SelectedCategory = category;
         return _settingsProVm;

@@ -40,5 +40,25 @@ public static class ShellChangeNotifier
         {
             SendMessageTimeout((IntPtr)0xFFFF, WM_SETTINGCHANGE, IntPtr.Zero, "Policy", SMTO_ABORTIFHUNG, 3000, out _);
         }
+
+        if (scope == RefreshScope.ExplorerRestart)
+        {
+            RestartExplorer();
+        }
+    }
+
+    public static void RestartExplorer()
+    {
+        try
+        {
+            var psi = new System.Diagnostics.ProcessStartInfo("cmd.exe", "/c taskkill /f /im explorer.exe & start explorer.exe")
+            {
+                CreateNoWindow = true,
+                UseShellExecute = true,
+                Verb = "runas"
+            };
+            System.Diagnostics.Process.Start(psi);
+        }
+        catch { }
     }
 }
