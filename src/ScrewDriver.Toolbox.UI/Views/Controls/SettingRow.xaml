@@ -1,0 +1,74 @@
+<UserControl x:Class="ScrewDriver.Toolbox.UI.Views.Controls.SettingRow"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <Style x:Key="BadgeStyle" TargetType="Border">
+            <Setter Property="Padding" Value="6,1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="6,0,0,0"/>
+        </Style>
+    </UserControl.Resources>
+    <Border Style="{StaticResource CardStyle}" Margin="0,0,0,10" Padding="14">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Icon -->
+            <Border Width="36" Height="36" CornerRadius="8"
+                    Background="{DynamicResource PrimaryLightBrush}"
+                    VerticalAlignment="Center" Margin="0,0,12,0"
+                    Grid.RowSpan="3">
+                <TextBlock Text="{Binding IconCode}" FontSize="16"
+                           FontFamily="Segoe UI Emoji"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+
+            <!-- Row 0: Name + badges + toggle -->
+            <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold"
+                           Foreground="{DynamicResource TextPrimaryBrush}"/>
+                <Border Style="{StaticResource BadgeStyle}"
+                        Background="{Binding RiskBadgeColor, Converter={StaticResource StringToBrush}}">
+                    <TextBlock Text="{Binding RiskLabel}" FontSize="10" Foreground="White"/>
+                </Border>
+                <Border Style="{StaticResource BadgeStyle}"
+                        Visibility="{Binding Recommendation, Converter={StaticResource RecToVis}}"
+                        Background="{Binding RecommendationBadgeColor, Converter={StaticResource StringToBrush}}">
+                    <TextBlock Text="{Binding RecommendationText}" FontSize="10" Foreground="White"/>
+                </Border>
+            </StackPanel>
+
+            <CheckBox Grid.Column="2" Grid.Row="0" Grid.RowSpan="3"
+                      IsChecked="{Binding IsEnabled}"
+                      Style="{StaticResource ToggleSwitchStyle}"
+                      VerticalAlignment="Center" Margin="16,0,0,0"/>
+
+            <!-- Row 1: Description -->
+            <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding Description}"
+                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
+                       TextWrapping="Wrap" TextTrimming="CharacterEllipsis"
+                       MaxHeight="32" Margin="0,4,0,0"/>
+
+            <!-- Row 2: Status detail bar (adjacent TextBlocks instead of Run — avoids WPF Run binding bugs) -->
+            <StackPanel Grid.Column="1" Grid.Row="2" Orientation="Horizontal" Margin="0,6,0,0">
+                <TextBlock Text="当前: " FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                <TextBlock Text="{Binding StatusText}" FontSize="11"
+                           Foreground="{Binding StatusColor, Converter={StaticResource StringToBrush}}"/>
+                <TextBlock Text=" · 建议: " FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                <TextBlock Text="{Binding RecommendationText, FallbackValue=—}" FontSize="11"
+                           Foreground="{Binding RecommendationBadgeColor, Converter={StaticResource StringToBrush}}"/>
+                <TextBlock Text=" · 方式: " FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}"/>
+                <TextBlock Text="{Binding OperationType}" FontSize="11" Foreground="#999999"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

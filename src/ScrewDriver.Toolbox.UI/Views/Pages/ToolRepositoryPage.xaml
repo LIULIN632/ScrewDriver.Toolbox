@@ -1,0 +1,124 @@
+<UserControl x:Class="ScrewDriver.Toolbox.UI.Views.Pages.ToolRepositoryPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:conv="clr-namespace:ScrewDriver.Toolbox.UI.Converters"
+      xmlns:controls="clr-namespace:ScrewDriver.Toolbox.UI.Views.Controls"
+      AllowDrop="True"
+      DragEnter="Page_DragEnter"
+      Drop="Page_Drop"
+      PreviewDragOver="Page_PreviewDragOver">
+    <UserControl.Resources>
+        <conv:BoolToVisibilityConverter x:Key="BoolToVis"/>
+        <conv:IconPathConverter x:Key="IconPathConverter"/>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="工具仓库" FontSize="24" FontWeight="Bold"
+                   Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
+
+        <!-- 扫描进度 -->
+        <Border Grid.Row="1" Style="{StaticResource CardStyle}" Margin="0,0,0,10"
+                Padding="10,6" Visibility="{Binding IsScanning, Converter={StaticResource BoolToVis}}">
+            <StackPanel Orientation="Horizontal">
+                <ProgressBar Width="16" Height="16" IsIndeterminate="True" Margin="0,0,8,0"/>
+                <TextBlock Text="正在检测已安装工具..." FontSize="13"
+                           Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <!-- 推荐工具 Banner -->
+        <StackPanel Grid.Row="2" Margin="0,0,0,16"
+                    Visibility="{Binding RecommendedTools.Count, Converter={StaticResource BoolToVis}}">
+            <TextBlock Text="推荐工具" FontSize="14" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10"/>
+            <ItemsControl ItemsSource="{Binding RecommendedTools}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Width="200" Style="{StaticResource CardStyle}"
+                                Margin="0,0,12,0" Padding="14" Cursor="Hand"
+                                MouseLeftButtonDown="RecommendedTool_Click">
+                            <StackPanel>
+                                <Grid Width="32" Height="32" Margin="0,0,0,8">
+                                    <Image Source="{Binding IconPath, Converter={StaticResource IconPathConverter}}"
+                                           Width="32" Height="32"/>
+                                </Grid>
+                                <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                <TextBlock Text="{Binding Description}" FontSize="11"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           TextTrimming="CharacterEllipsis" Margin="0,4,0,0"/>
+                                <TextBlock Text="{Binding Category}" FontSize="10"
+                                           Foreground="{DynamicResource PrimaryBrush}" Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+
+        <!-- 搜索栏 + 操作按钮 -->
+        <Grid Grid.Row="3" Margin="0,0,0,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Border Background="{DynamicResource CardBackgroundBrush}"
+                    CornerRadius="10" Padding="6,2"
+                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+                <TextBox Style="{StaticResource SearchBoxStyle}"
+                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
+            </Border>
+            <Button Grid.Column="1" Content="扫描本地" Height="32" FontSize="12"
+                    Margin="12,0,0,0" Padding="12,0"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Command="{Binding ScanLocalFolderCommand}"/>
+            <Button Grid.Column="2" Content="清除" Height="32" FontSize="12"
+                    Margin="8,0,0,0" Padding="12,0"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Command="{Binding ClearLocalScanCommand}"/>
+            <Button Grid.Column="3" Content="检查更新" Height="32" FontSize="12"
+                    Margin="8,0,0,0" Padding="12,0"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Command="{Binding CheckForUpdatesCommand}"/>
+            <TextBlock Grid.Column="4" Text="正在检查更新..." FontSize="12"
+                       Foreground="{DynamicResource TextSecondaryBrush}"
+                       Margin="8,0,0,0" VerticalAlignment="Center"
+                       Visibility="{Binding IsCheckingForUpdates, Converter={StaticResource BoolToVis}}"/>
+        </Grid>
+
+
+        <!-- 工具卡片列表 (左到右，上到下排列) -->
+        <ScrollViewer Grid.Row="4" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl ItemsSource="{Binding FilteredTools}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <controls:ToolCard
+                            LaunchCommand="{Binding DataContext.LaunchToolCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                            InstallCommand="{Binding DataContext.InstallToolCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                            UpgradeCommand="{Binding DataContext.UpgradeToolCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

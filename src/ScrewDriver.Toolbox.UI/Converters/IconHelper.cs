@@ -12,6 +12,8 @@ public static class IconHelper
 {
     private static readonly Dictionary<string, ImageSource> _cache = new();
 
+    public static void ClearCache() => _cache.Clear();
+
     public static ImageSource? GetIcon(string exePath)
     {
         if (string.IsNullOrEmpty(exePath) || !File.Exists(exePath))

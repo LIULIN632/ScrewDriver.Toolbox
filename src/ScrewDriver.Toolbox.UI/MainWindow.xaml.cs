@@ -1,14 +1,12 @@
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Interop;
-using System.Windows.Media;
 using ScrewDriver.Toolbox.Core.Models;
 using ScrewDriver.Toolbox.Core.Services;
 using ScrewDriver.Toolbox.UI.Services;
-using ScrewDriver.Toolbox.UI.Views;
+using ScrewDriver.Toolbox.UI.ViewModels;
 using Application = System.Windows.Application;
 
 namespace ScrewDriver.Toolbox.UI;
@@ -16,9 +14,8 @@ namespace ScrewDriver.Toolbox.UI;
 public partial class MainWindow : Window
 {
     private TrayIconManager? _trayIconManager;
-    private bool _categoryExpanded;
-    private string _activeNavTag = "StartPage";
-    private string? _activeCategory;
+    private bool _isExiting;
+    private WindowStateModel? _restoredState;
     private readonly JsonConfigManager _config = new(AppDomain.CurrentDomain.BaseDirectory);
 
     [DllImport("dwmapi.dll")]
@@ -29,48 +26,37 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        DataContext = new MainViewModel();
 
-        // 恢复上次窗口位置和大小
-        RestoreWindowState();
-
-        MainFrame.Navigate(new StartPage());
+        _restoredState = _config.Load<WindowStateModel>("window-state");
+        if (_restoredState != null)
+        {
+            if (_restoredState.Width > 0) Width = _restoredState.Width;
+            if (_restoredState.Height > 0) Height = _restoredState.Height;
+        }
 
         SourceInitialized += (_, _) =>
         {
             _trayIconManager = new TrayIconManager(ShowWindow, ExitApplication);
             _trayIconManager.Initialize();
             ApplyTitleBarTheme();
+
+            if (_restoredState != null)
+            {
+                if (_restoredState.Left >= 0 && _restoredState.Top >= 0)
+                {
+                    Left = _restoredState.Left;
+                    Top = _restoredState.Top;
+                }
+                if (Enum.TryParse<WindowState>(_restoredState.State, out var ws))
+                    WindowState = ws;
+            }
         };
 
         ThemeService.ThemeChanged += (_, _) =>
         {
             Dispatcher.Invoke(ApplyTitleBarTheme);
         };
-
-        // 预创建分类列表项（避免展开时卡顿）
-        foreach (var cat in ToolRegistry.Categories)
-        {
-            var border = new Border
-            {
-                Padding = new Thickness(32, 0, 0, 0),
-                Height = 36,
-                Cursor = System.Windows.Input.Cursors.Hand,
-                Background = System.Windows.Media.Brushes.Transparent,
-                DataContext = cat
-            };
-            border.MouseLeftButtonDown += CategoryItem_Click;
-            border.Child = new TextBlock
-            {
-                Text = cat,
-                FontSize = 13,
-                VerticalAlignment = VerticalAlignment.Center,
-                Foreground = FindResource("TextSecondaryBrush") as System.Windows.Media.Brush
-            };
-            CategoryPanel.Children.Add(border);
-        }
-
-        // 默认高亮启动
-        SetActiveNav("StartPage");
     }
 
     private void ApplyTitleBarTheme()
@@ -83,30 +69,26 @@ public partial class MainWindow : Window
 
     protected override void OnClosing(CancelEventArgs e)
     {
-        // 保存窗口位置和大小
         SaveWindowState();
+
+        if (!_isExiting)
+        {
+            var trayMode = _config.Load<TrayModeModel>("tray-mode");
+            if (trayMode?.MinimizeToTray == true)
+            {
+                e.Cancel = true;
+                Hide();
+                return;
+            }
+
+            _isExiting = true;
+            _trayIconManager?.Dispose();
+            Application.Current.Shutdown();
+            return;
+        }
+
         _trayIconManager?.Dispose();
         base.OnClosing(e);
-    }
-
-    private void RestoreWindowState()
-    {
-        var state = _config.Load<WindowStateModel>("window-state");
-        if (state == null) return;
-
-        if (state.Width > 0) Width = state.Width;
-        if (state.Height > 0) Height = state.Height;
-
-        SourceInitialized += (_, _) =>
-        {
-            if (state.Left >= 0 && state.Top >= 0)
-            {
-                Left = state.Left;
-                Top = state.Top;
-            }
-            if (Enum.TryParse<System.Windows.WindowState>(state.State, out var ws))
-                WindowState = ws;
-        };
     }
 
     private void SaveWindowState()
@@ -131,138 +113,35 @@ public partial class MainWindow : Window
 
     private void ExitApplication()
     {
+        _isExiting = true;
         _trayIconManager?.Dispose();
         Application.Current.Shutdown();
     }
 
     private void NavItem_Click(object sender, MouseButtonEventArgs e)
     {
-        if (sender is Border border && border.Tag is string tag)
-        {
-            SetActiveNav(tag);
-            NavigateToPageByTag(tag);
-        }
-        else if (sender is Grid grid && grid.Tag is string gridTag)
-        {
-            SetActiveNav(gridTag);
-            NavigateToPageByTag(gridTag);
-        }
-    }
+        if (sender is not FrameworkElement fe) return;
+        if (fe.DataContext is not NavigationItem item) return;
+        if (fe.Tag is not string tag) return;
 
-    private void ToggleCategoryExpand(object sender, MouseButtonEventArgs e)
-    {
-        _categoryExpanded = !_categoryExpanded;
-        CategoryPanel.Visibility = _categoryExpanded ? Visibility.Visible : Visibility.Collapsed;
-        ExpandIcon.Text = _categoryExpanded ? "▼" : "▶";
-        SetActiveNav("ToolRepositoryPage");
-
-        // 展开时恢复之前选中的分类高亮
-        if (_categoryExpanded && _activeCategory != null)
-        {
-            foreach (var child in CategoryPanel.Children)
-            {
-                if (child is Border cb && cb.DataContext is string cat && cat == _activeCategory)
-                {
-                    cb.Background = FindResource("PrimaryLightBrush") as System.Windows.Media.Brush;
-                    if (cb.Child is TextBlock tb)
-                        tb.Foreground = FindResource("PrimaryBrush") as System.Windows.Media.Brush;
-                }
-            }
-        }
-
+        var vm = (MainViewModel)DataContext;
         e.Handled = true;
-    }
 
-    private void CategoryItem_Click(object sender, MouseButtonEventArgs e)
-    {
-        if (sender is Border border && border.DataContext is string category)
+        if (item.SubItems.Count > 0)
         {
-            // 清除之前分类的高亮
-            foreach (var child in CategoryPanel.Children)
+            if (item.IsActive)
+                item.IsExpanded = !item.IsExpanded;
+            else
             {
-                if (child is Border cb)
-                {
-                    cb.Background = System.Windows.Media.Brushes.Transparent;
-                    if (cb.Child is TextBlock ct)
-                        ct.Foreground = FindResource("TextSecondaryBrush") as System.Windows.Media.Brush;
-                }
-            }
-            // 高亮当前分类
-            _activeCategory = category;
-            border.Background = FindResource("PrimaryLightBrush") as System.Windows.Media.Brush;
-            if (border.Child is TextBlock tb)
-                tb.Foreground = FindResource("PrimaryBrush") as System.Windows.Media.Brush;
-
-            SetActiveNav("ToolRepositoryPage");
-            MainFrame.Navigate(new ToolRepositoryPage(category));
-        }
-    }
-
-    private void SetActiveNav(string tag)
-    {
-        _activeNavTag = tag;
-        var navTags = new[] { "StartPage", "ToolRepositoryPage", "SystemOptimizerPage",
-                              "RepairCenterPage", "HardwarePage", "ScenariosPage", "SettingsPage" };
-
-        // 遍历导航栏所有子元素，清除/设置高亮
-        if (NavContainer is StackPanel panel)
-        {
-            foreach (var child in panel.Children)
-            {
-                string? itemTag = child switch
-                {
-                    Border b => b.Tag as string,
-                    Grid g => g.Tag as string,
-                    _ => null
-                };
-
-                if (itemTag == null || !navTags.Contains(itemTag)) continue;
-
-                bool isActive = itemTag == tag;
-                var bg = isActive
-                    ? FindResource("PrimaryLightBrush") as System.Windows.Media.Brush
-                    : System.Windows.Media.Brushes.Transparent;
-                var borderThickness = isActive ? new Thickness(4, 0, 0, 0) : new Thickness(0);
-
-                switch (child)
-                {
-                    case Border b:
-                        b.Background = bg;
-                        b.BorderBrush = isActive ? FindResource("PrimaryBrush") as System.Windows.Media.Brush : null;
-                        b.BorderThickness = borderThickness;
-                        break;
-                    case Grid g:
-                        g.Background = bg;
-                        // Grid doesn't have BorderBrush/Thickness, apply to inner Border
-                        foreach (var inner in g.Children)
-                        {
-                            if (inner is Border ib)
-                            {
-                                ib.Background = bg;
-                                ib.BorderBrush = isActive ? FindResource("PrimaryBrush") as System.Windows.Media.Brush : null;
-                                ib.BorderThickness = borderThickness;
-                            }
-                        }
-                        break;
-                }
+                item.IsExpanded = true;
+                vm.NavigateTo(tag);
             }
         }
-    }
-
-    public void NavigateToPageByTag(string tag)
-    {
-        Page? page = tag switch
+        else
         {
-            "StartPage" => new StartPage(),
-            "ToolRepositoryPage" => new ToolRepositoryPage(),
-            "SystemOptimizerPage" => new SystemOptimizerPage(),
-            "RepairCenterPage" => new RepairCenterPage(),
-            "HardwarePage" => new HardwarePage(),
-            "ScenariosPage" => new ScenariosPage(),
-            "SettingsPage" => new SettingsPage(),
-            _ => null
-        };
-
-        if (page != null) MainFrame.Navigate(page);
+            vm.NavigateTo(tag);
+        }
     }
 }
+
+internal class TrayModeModel { public bool MinimizeToTray { get; set; } }

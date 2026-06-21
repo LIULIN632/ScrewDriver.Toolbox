@@ -1,9 +1,12 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using ScrewDriver.Toolbox.Core;
 using ScrewDriver.Toolbox.Core.Models;
@@ -40,6 +43,8 @@ public class HardwareViewModel : BaseViewModel
     public ICommand DetailCommand { get; }
     public ICommand ScreenshotCommand { get; }
 
+    private bool _isActive;
+
     public HardwareViewModel()
     {
         RefreshCommand = new RelayCommand(_ => Refresh());
@@ -48,10 +53,24 @@ public class HardwareViewModel : BaseViewModel
 
         _uptimeTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         _uptimeTimer.Tick += (_, _) => UpdateUptime();
-        _uptimeTimer.Start();
 
-        // 启动时异步加载，不阻塞 UI
-        _ = LoadDataAsync();
+        Activate();
+    }
+
+    public void Activate()
+    {
+        if (_isActive) return;
+        _isActive = true;
+        _uptimeTimer.Start();
+        if (HardwareItems.Count == 0)
+            _ = LoadDataAsync();
+    }
+
+    public void Deactivate()
+    {
+        if (!_isActive) return;
+        _isActive = false;
+        _uptimeTimer.Stop();
     }
 
     private async void Refresh()
@@ -63,68 +82,103 @@ public class HardwareViewModel : BaseViewModel
 
     private async Task LoadDataAsync()
     {
-        IsLoading = true;
-
-        // 1. 同步读取轻量信息（注册表读取，不卡 UI）
-        var manufacturer = SystemInfo.DetectHardwareBrand() ?? "未知";
-        var model = SystemInfo.DetectSystemModel() ?? "未知";
-        SystemModel = manufacturer;
-        SystemModelDetail = model;
-        OnPropertyChanged(nameof(SystemModel));
-        OnPropertyChanged(nameof(SystemModelDetail));
-
-        var os = SystemInfo.WindowsVersionString ?? "Windows";
-        OsVersion = os.Contains("10") ? "Windows 10" : os.Contains("11") || os.Contains("10.0.2") ? "Windows 11" : os;
-        OsVersionDetail = os;
-        OnPropertyChanged(nameof(OsVersion));
-        OnPropertyChanged(nameof(OsVersionDetail));
-
-        // 2. 后台线程执行 WMI 查询
-        var modules = await Task.Run(() => _hardwareService.GetAllDetailInfo());
-        var bootTime = await Task.Run(() => GetBootTime());
-
-        // 3. 回到 UI 线程更新
-        _bootTime = bootTime;
-        UpdateUptime();
-        OnPropertyChanged(nameof(Uptime));
-
-        HardwareItems.Clear();
-
-        foreach (var module in modules)
+        try
         {
-            if (module.Items.Count == 0) continue;
+            IsLoading = true;
 
-            // 取最重要的字段精简展示
-            var important = new List<HardwareDetailItem>();
-            foreach (var item in module.Items)
+            // 1. 同步读取轻量信息（注册表读取，不卡 UI）
+            var manufacturer = SystemInfo.DetectHardwareBrand() ?? "未知";
+            var model = SystemInfo.DetectSystemModel() ?? "未知";
+            SystemModel = manufacturer;
+            SystemModelDetail = model;
+            OnPropertyChanged(nameof(SystemModel));
+            OnPropertyChanged(nameof(SystemModelDetail));
+
+            var os = SystemInfo.WindowsVersionString ?? "Windows";
+            OsVersion = os.Contains("10") ? "Windows 10" : os.Contains("11") || os.Contains("10.0.2") ? "Windows 11" : os;
+            OsVersionDetail = os;
+            OnPropertyChanged(nameof(OsVersion));
+            OnPropertyChanged(nameof(OsVersionDetail));
+
+            // 2. 后台线程执行 WMI 查询（含超时保护）
+            List<HardwareDetailModule> modules;
+            try
             {
-                // 只保留关键信息：型号/容量/频率/核心数/分辨率等
-                if (item.Label.Contains("型号") || item.Label.Contains("总容量") ||
-                    item.Label.Contains("核心") || item.Label.Contains("频率") ||
-                    item.Label.Contains("分辨率") || item.Label.Contains("显存") ||
-                    item.Label.Contains("可用空间") || item.Label.Contains("制造商") ||
-                    item.Label == "BIOS 版本" || item.Label == "MAC 地址" ||
-                    item.Label == "声卡" || item.Label == "网卡")
-                {
-                    important.Add(item);
-                }
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+                modules = await Task.Run(() => _hardwareService.GetAllDetailInfo(), cts.Token);
             }
-            // 如果一个都没匹配到，取第一条
-            if (important.Count == 0 && module.Items.Count > 0)
-                important.Add(module.Items[0]);
+            catch (OperationCanceledException)
+            {
+                modules = new List<HardwareDetailModule>
+                {
+                    new() { ModuleName = "硬件检测", Icon = "⚠️", Items = new() { new() { Label = "状态", Value = "WMI 查询超时，请刷新重试" } } }
+                };
+            }
+            catch (Exception ex)
+            {
+                modules = new List<HardwareDetailModule>
+                {
+                    new() { ModuleName = "硬件检测", Icon = "⚠️", Items = new() { new() { Label = "状态", Value = $"检测失败: {ex.Message}" } } }
+                };
+            }
 
-            // 最多显示 3 行
-            if (important.Count > 3)
-                important = important.Take(3).ToList();
+            DateTime bootTime;
+            try
+            {
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                bootTime = await Task.Run(() => GetBootTime(), cts.Token);
+            }
+            catch
+            {
+                bootTime = DateTime.MinValue;
+            }
 
-            HardwareItems.Add(new HardwareDetailItem { Label = module.ModuleName, Value = "", IsHeader = true });
-            foreach (var item in important)
-                HardwareItems.Add(item);
+            // 3. 回到 UI 线程更新
+            _bootTime = bootTime;
+            UpdateUptime();
+            OnPropertyChanged(nameof(Uptime));
+
+            HardwareItems.Clear();
+            foreach (var module in modules)
+            {
+                if (module.Items.Count == 0) continue;
+
+                var important = new List<HardwareDetailItem>();
+                foreach (var item in module.Items)
+                {
+                    if (item.Label.Contains("型号") || item.Label.Contains("总容量") ||
+                        item.Label.Contains("核心") || item.Label.Contains("频率") ||
+                        item.Label.Contains("分辨率") || item.Label.Contains("显存") ||
+                        item.Label.Contains("可用空间") || item.Label.Contains("制造商") ||
+                        item.Label == "BIOS 版本" || item.Label == "MAC 地址" ||
+                        item.Label == "声卡" || item.Label == "网卡")
+                    {
+                        important.Add(item);
+                    }
+                }
+                if (important.Count == 0 && module.Items.Count > 0)
+                    important.Add(module.Items[0]);
+                if (important.Count > 3)
+                    important = important.Take(3).ToList();
+
+                HardwareItems.Add(new HardwareDetailItem { Label = module.ModuleName, Value = "", IsHeader = true });
+                foreach (var item in important)
+                    HardwareItems.Add(item);
+            }
+
+            RefreshTime = DateTime.Now.ToString("HH:mm:ss");
+            OnPropertyChanged(nameof(RefreshTime));
         }
-
-        RefreshTime = DateTime.Now.ToString("HH:mm:ss");
-        OnPropertyChanged(nameof(RefreshTime));
-        IsLoading = false;
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"HardwareViewModel LoadDataAsync failed: {ex.Message}");
+            HardwareItems.Clear();
+            HardwareItems.Add(new HardwareDetailItem { Label = "错误", Value = $"数据加载异常: {ex.Message}", IsHeader = true });
+        }
+        finally
+        {
+            IsLoading = false;
+        }
     }
 
     // 运行时长每秒刷新

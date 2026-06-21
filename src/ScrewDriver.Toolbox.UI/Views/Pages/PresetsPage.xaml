@@ -1,0 +1,69 @@
+<UserControl x:Class="ScrewDriver.Toolbox.UI.Views.Pages.PresetsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Background="{DynamicResource BackgroundBrush}">
+    <Grid Margin="28,24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,24">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="一键预设方案" FontSize="26" FontWeight="Bold"
+                           Foreground="{DynamicResource TextPrimaryBrush}"/>
+                <TextBlock Text="恢复默认" FontSize="12" VerticalAlignment="Bottom" Margin="14,0,0,4"
+                           Foreground="{DynamicResource PrimaryBrush}" Cursor="Hand"
+                           TextDecorations="Underline" MouseLeftButtonDown="ResetDefaults_Click"/>
+            </StackPanel>
+            <TextBlock Text="批量应用系统配置，一键适配不同使用场景" FontSize="14"
+                       Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,6,0,0"/>
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding PresetList}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Style="{StaticResource CardStyle}" Width="360" Margin="0,0,16,16" Padding="20">
+                            <StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                                    <Border Width="44" Height="44" CornerRadius="10"
+                                            Background="{DynamicResource PrimaryLightBrush}">
+                                        <TextBlock Text="{Binding IconCode}" FontSize="22"
+                                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <StackPanel Margin="14,0,0,0">
+                                        <TextBlock Text="{Binding Name}" FontSize="16" FontWeight="SemiBold"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                        <TextBlock Text="{Binding Tag}" FontSize="11"
+                                                   Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,2,0,0"/>
+                                    </StackPanel>
+                                </StackPanel>
+                                <TextBlock Text="{Binding Description}" FontSize="12"
+                                           Foreground="{DynamicResource TextSecondaryBrush}"
+                                           TextWrapping="Wrap"
+                                           TextTrimming="CharacterEllipsis" Margin="0,0,0,16"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button Content="编辑" Height="30" FontSize="11" Padding="12,0"
+                                            Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,6,0"
+                                            Command="{Binding EditCommand}"/>
+                                    <Button Content="查看详情" Height="30" FontSize="11" Padding="12,0"
+                                            Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,6,0"
+                                            Command="{Binding ViewDetailCommand}"/>
+                                    <Button Content="一键应用" Height="30" FontSize="11" Padding="12,0"
+                                            Style="{StaticResource PrimaryButtonStyle}"
+                                            Command="{Binding ApplyCommand}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

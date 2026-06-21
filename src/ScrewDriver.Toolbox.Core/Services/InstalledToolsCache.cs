@@ -12,20 +12,20 @@ public class InstalledToolsCache
 
     private readonly object _lock = new();
     private List<ToolItem> _installedTools = new();
-    private List<ToolItem> _toolsFolderTools = new(); // Tools 中未注册的 exe
+    private List<ToolItem> _toolsFolderTools = new();
     private HashSet<string> _pinnedNames = new();
     private FileSystemWatcher? _watcher;
+    private volatile int _isInitializing;
 
     public List<ToolItem> InstalledTools
     {
         get
         {
+            // 双检查锁：初始化触发在锁外，避免锁内 fire-and-forget
+            if (!IsInitialized && Interlocked.CompareExchange(ref _isInitializing, 1, 0) == 0)
+                _ = InitializeAsync();
             lock (_lock)
-            {
-                if (!IsInitialized)
-                    _ = InitializeAsync();
                 return new List<ToolItem>(_installedTools);
-            }
         }
     }
 
@@ -34,16 +34,14 @@ public class InstalledToolsCache
     {
         get
         {
+            if (!IsInitialized && Interlocked.CompareExchange(ref _isInitializing, 1, 0) == 0)
+                _ = InitializeAsync();
             lock (_lock)
-            {
-                if (!IsInitialized)
-                    _ = InitializeAsync();
                 return new List<ToolItem>(_toolsFolderTools);
-            }
         }
     }
 
-    public event Action? CacheUpdated;
+    public event EventHandler? CacheUpdated;
     public bool IsInitialized { get; private set; }
 
     private readonly string _iconCacheDir = Path.Combine(
@@ -113,37 +111,54 @@ public class InstalledToolsCache
             foreach (var tool in _installedTools)
                 tool.IsPinned = _pinnedNames.Contains(tool.Name);
         }
-        CacheUpdated?.Invoke();
+        NotifyCacheUpdated();
     }
 
     public async Task InitializeAsync()
     {
-        await Task.Run(() => ScanTools());
-
-        IsInitialized = true;
-        CacheUpdated?.Invoke();
-
-        // 注册文件监听，Tools 目录变动时自动刷新
-        SetupFileWatcher();
-
-        // Icons load lazily in background
-        _ = Task.Run(() =>
+        try
         {
-            List<ToolItem> snapshot;
-            lock (_lock) { snapshot = new List<ToolItem>(_installedTools); }
+            await Task.Run(() => ScanTools());
 
-            var changed = false;
-            foreach (var tool in snapshot)
+            IsInitialized = true;
+            NotifyCacheUpdated();
+
+            // 注册文件监听，Tools 目录变动时自动刷新
+            SetupFileWatcher();
+
+            // Icons load lazily in background
+            _ = Task.Run(() =>
             {
-                if (string.IsNullOrEmpty(tool.IconPath))
+                try
                 {
-                    var icon = GetOrCreateIcon(tool);
-                    if (icon != null) { tool.IconPath = icon; changed = true; }
+                    List<ToolItem> snapshot;
+                    lock (_lock) { snapshot = new List<ToolItem>(_installedTools); }
+
+                    var changed = false;
+                    foreach (var tool in snapshot)
+                    {
+                        if (string.IsNullOrEmpty(tool.IconPath))
+                        {
+                            var icon = GetOrCreateIcon(tool);
+                            if (icon != null) { tool.IconPath = icon; changed = true; }
+                        }
+                    }
+                    if (changed)
+                        NotifyCacheUpdated();
                 }
-            }
-            if (changed)
-                CacheUpdated?.Invoke();
-        });
+                catch { /* 图标加载失败不阻塞 */ }
+            });
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"InstalledToolsCache init failed: {ex.Message}");
+        }
+    }
+
+    private void NotifyCacheUpdated()
+    {
+        try { CacheUpdated?.Invoke(this, EventArgs.Empty); }
+        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"CacheUpdated handler failed: {ex.Message}"); }
     }
 
     private void ScanTools()
@@ -250,7 +265,7 @@ public class InstalledToolsCache
             {
                 await Task.Run(() => ScanTools());
                 IsInitialized = true;
-                CacheUpdated?.Invoke();
+                NotifyCacheUpdated();
                 timer.Dispose();
             };
         }

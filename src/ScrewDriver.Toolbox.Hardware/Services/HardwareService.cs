@@ -561,7 +561,8 @@ public class HardwareService
         var items = new List<HardwareDetailItem>();
         try
         {
-            using var searcher = new ManagementObjectSearcher("SELECT Name, ScreenWidth, ScreenHeight, DisplayFrequency FROM Win32_DisplayDevice");
+            // Use Win32_DesktopMonitor (the correct WMI class for monitors)
+            using var searcher = new ManagementObjectSearcher("SELECT Name, ScreenWidth, ScreenHeight FROM Win32_DesktopMonitor");
             var monIndex = 0;
             foreach (var obj in searcher.Get())
             {
@@ -572,8 +573,6 @@ public class HardwareService
                 var w = obj["ScreenWidth"]?.ToString() ?? "-";
                 var h = obj["ScreenHeight"]?.ToString() ?? "-";
                 items.Add(new() { Label = $"分辨率", Value = $"{w}×{h}" });
-                var freq = obj["DisplayFrequency"]?.ToString() ?? "-";
-                items.Add(new() { Label = $"刷新率", Value = $"{freq} Hz" });
             }
             if (monIndex == 0) items.Add(new() { Label = "状态", Value = "未检测到" });
         }

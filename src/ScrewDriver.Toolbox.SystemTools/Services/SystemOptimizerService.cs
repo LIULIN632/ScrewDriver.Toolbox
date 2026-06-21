@@ -3,13 +3,21 @@ using System.Runtime.Versioning;
 using Microsoft.Win32;
 using ScrewDriver.Toolbox.Core.Interfaces;
 using ScrewDriver.Toolbox.Core.Models;
+using ScrewDriver.Toolbox.Core.Services;
+using ScrewDriver.Toolbox.SystemTools.Services.Optimization.Definitions;
+using static ScrewDriver.Toolbox.SystemTools.Services.Optimization.Definitions.DefinitionHelper;
 
 namespace ScrewDriver.Toolbox.SystemTools.Services;
+
+using SettingDef = (
+    string Id, string Name, string Desc, string Cat, RiskLevel Risk, string RiskDesc, string Revert,
+    RegistryHive Hive, string KeyPath, string ValueName, object EnabledVal, object? DisabledVal,
+    RegistryValueKind Kind, string OperationType, string? EnablePsCmd, string? DisablePsCmd);
 
 [SupportedOSPlatform("windows")]
 public class SystemOptimizerService : ISystemOptimizerService
 {
-    private List<SystemSettingItem>? _settings;
+    private static List<SystemSettingItem>? _settings;
 
     public static readonly (string Name, string Description)[] BloatwarePackages =
     {
@@ -45,194 +53,36 @@ public class SystemOptimizerService : ISystemOptimizerService
         ("Clipchamp.Clipchamp", "Clipchamp 视频编辑器"),
     };
 
-    private static readonly List<(string Id, string Name, string Desc, string Cat, RiskLevel Risk, string RiskDesc, string Revert,
-        RegistryHive Hive, string KeyPath, string ValueName, object EnabledVal, object? DisabledVal, RegistryValueKind Kind,
-        string OperationType, string? EnablePsCmd, string? DisablePsCmd)> Definitions = new()
+    private static List<SettingDef>? _definitions;
+    private static List<SettingDef> Definitions => _definitions ??= BuildDefinitions();
+
+    private static List<SettingDef> BuildDefinitions()
     {
-        // ================================================================
-        // Windows 更新
-        // ================================================================
-        ("noauto-update", "暂停 Windows Update", "禁用 Windows 自动更新推送，暂停系统更新",
-         "Windows 更新", RiskLevel.Dangerous, "暂停更新可能导致系统无法及时获取安全补丁", "删除 NoAutoUpdate 键值即可恢复自动更新",
-         RegistryHive.LocalMachine, @"SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU", "NoAutoUpdate", 1, 0, RegistryValueKind.DWord,
-         "Registry", null, null),
+        return SystemUIDefinitions.Definitions
+            .Concat(SecurityDefinitions.Definitions)
+            .Concat(ExplorerDefinitions.Definitions)
+            .Concat(AppearanceDefinitions.Definitions)
+            .Concat(TaskbarDefinitions.Definitions)
+            .Concat(PrivacyDefinitions.Definitions)
+            .Concat(PerformanceDefinitions.Definitions)
+            .ToList();
+    }
 
-        ("update-fully-disable", "完全禁用 Windows Update", "停止并禁用 Windows Update 相关服务（wuauserv/bits/dosvc）",
-         "Windows 更新", RiskLevel.Dangerous, "彻底关闭更新服务，系统将无法获取任何更新", "执行 DisablePsCommand 恢复服务启动类型",
-         RegistryHive.LocalMachine, "", "", 0, 0, RegistryValueKind.DWord,
-         "PowerShell",
-         "Stop-Service wuauserv,bits,dosvc -Force; Set-Service wuauserv -StartupType Disabled; Set-Service bits -StartupType Disabled; Set-Service dosvc -StartupType Disabled",
-         "Set-Service wuauserv -StartupType Manual; Set-Service bits -StartupType Manual; Set-Service dosvc -StartupType Manual"),
+    private static Dictionary<string, RecommendedAction>? _recommendations;
+    private static Dictionary<string, RecommendedAction> RecommendationMap => _recommendations ??= BuildRecommendations();
 
-        // ================================================================
-        // Defender 完整管理
-        // ================================================================
-        ("disable-defender", "关闭 Defender 实时保护", "禁用 Windows Defender 实时扫描保护",
-         "Defender", RiskLevel.Dangerous, "关闭实时保护会使系统暴露在恶意软件威胁下，请确保有其他安全软件替代", "删除 DisableRealtimeMonitoring 键值即可恢复",
-         RegistryHive.LocalMachine, @"SOFTWARE\Policies\Microsoft\Windows Defender\Real-Time Protection", "DisableRealtimeMonitoring", 1, 0, RegistryValueKind.DWord,
-         "Registry", null, null),
-
-        ("defender-cloud-protection", "关闭 Defender 云保护", "禁用 MAPS 云保护和样本自动提交",
-         "Defender", RiskLevel.Dangerous, "关闭云保护会降低对新威胁的响应速度", "执行 DisablePsCommand 恢复云保护级别",
-         RegistryHive.LocalMachine, "", "", 0, 0, RegistryValueKind.DWord,
-         "PowerShell",
-         "Set-MpPreference -MAPSReporting Disabled -SubmitSamplesConsent NeverSend",
-         "Set-MpPreference -MAPSReporting Advanced -SubmitSamplesConsent AlwaysPrompt"),
-
-        ("defender-tamper-protection", "关闭 Defender 篡改保护", "允许其他安全软件修改 Defender 设置",
-         "Defender", RiskLevel.Dangerous, "关闭篡改保护后恶意软件可能修改 Defender 配置", "将 TamperProtection 值改回 5 即可恢复",
-         RegistryHive.LocalMachine, @"SOFTWARE\Microsoft\Windows Defender\Features", "TamperProtection", 0, 5, RegistryValueKind.DWord,
-         "Registry", null, null),
-
-        ("defender-exclusion-path", "添加 Defender 排除路径", "将常用软件目录添加到 Defender 扫描排除列表",
-         "Defender", RiskLevel.Optional, "排除路径中的文件将不会被扫描，请确保路径安全", "执行 DisablePsCommand 移除排除路径",
-         RegistryHive.LocalMachine, "", "", 0, 0, RegistryValueKind.DWord,
-         "PowerShell",
-         "Add-MpPreference -ExclusionPath 'C:\\Program Files'; Add-MpPreference -ExclusionPath 'C:\\Program Files (x86)'; Add-MpPreference -ExclusionProcess 'devenv.exe'; Add-MpPreference -ExclusionProcess 'msbuild.exe'",
-         "Remove-MpPreference -ExclusionPath 'C:\\Program Files'; Remove-MpPreference -ExclusionPath 'C:\\Program Files (x86)'; Remove-MpPreference -ExclusionProcess 'devenv.exe'; Remove-MpPreference -ExclusionProcess 'msbuild.exe'"),
-
-        // ================================================================
-        // 隐私与遥测
-        // ================================================================
-        ("ad-id", "关闭广告 ID", "禁用 Windows 广告标识符，减少个性化广告追踪",
-         "隐私与遥测", RiskLevel.Recommended, "关闭后部分应用可能无法提供个性化内容", "将 Enabled 值改回 1 即可恢复",
-         RegistryHive.LocalMachine, @"SOFTWARE\Policies\Microsoft\Windows\AdvertisingInfo", "Enabled", 0, 1, RegistryValueKind.DWord,
-         "Registry", null, null),
-
-        ("telemetry", "关闭遥测数据", "将 Windows 诊断数据收集级别设为最低（仅安全）",
-         "隐私与遥测", RiskLevel.Recommended, "关闭遥测后部分 Windows 预览体验功能可能受限", "将 AllowTelemetry 改回 3 即可恢复默认级别",
-         RegistryHive.LocalMachine, @"SOFTWARE\Policies\Microsoft\Windows\DataCollection", "AllowTelemetry", 0, 3, RegistryValueKind.DWord,
-         "Registry", null, null),
-
-        ("activity-history", "关闭活动历史记录", "禁止 Windows 记录和上传活动历史到云端",
-         "隐私与遥测", RiskLevel.Recommended, "关闭后无法跨设备同步活动历史和时间线", "将 EnableActivityFeed 改回 1 即可恢复",
-         RegistryHive.LocalMachine, @"SOFTWARE\Policies\Microsoft\Windows\System", "EnableActivityFeed", 0, 1, RegistryValueKind.DWord,
-         "Registry", null, null),
-
-        ("disable-copilot", "禁用 Windows Copilot", "移除任务栏 Copilot 图标并禁用 AI 助手功能",
-         "隐私与遥测", RiskLevel.Optional, "会完全禁用 Copilot 功能，无法使用 AI 助手", "删除 TurnOffWindowsCopilot 值即可恢复",
-         RegistryHive.CurrentUser, @"Software\Policies\Microsoft\Windows\WindowsCopilot", "TurnOffWindowsCopilot", 1, 0, RegistryValueKind.DWord,
-         "Registry", null, null),
-
-        ("disable-tips", "关闭 Windows 提示", "禁用设置首页和锁屏的提示与建议内容",
-         "隐私与遥测", RiskLevel.Recommended, "仅关闭系统提示，不影响其他通知功能", "将 SoftLandingEnabled 改回 1 即可恢复",
-         RegistryHive.CurrentUser, @"Software\Microsoft\Windows\CurrentVersion\ContentDeliveryManager", "SoftLandingEnabled", 0, 1, RegistryValueKind.DWord,
-         "Registry", null, null),
-
-        // ================================================================
-        // 资源管理器增强
-        // ================================================================
-        ("show-extensions", "显示文件扩展名", "在资源管理器中显示已知文件类型的扩展名",
-         "资源管理器", RiskLevel.Recommended, "仅影响文件名的显示方式，不影响文件本身", "将 HideFileExt 值改回 1 即可隐藏扩展名",
-         RegistryHive.CurrentUser, @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "HideFileExt", 0, 1, RegistryValueKind.DWord,
-         "Registry", null, null),
-
-        ("show-hidden-files", "显示隐藏文件", "在资源管理器中显示隐藏文件和文件夹",
-         "资源管理器", RiskLevel.Optional, "隐藏文件通常包含系统配置，误删可能导致问题", "将 Hidden 值改回 2 即可隐藏",
-         RegistryHive.CurrentUser, @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "Hidden", 1, 2, RegistryValueKind.DWord,
-         "Registry", null, null),
-
-        ("show-system-files", "显示系统文件", "取消隐藏受保护的操作系统文件",
-         "资源管理器", RiskLevel.Dangerous, "系统文件删除后可能导致系统崩溃，请谨慎操作", "将 ShowSuperHidden 改回 0 即可隐藏",
-         RegistryHive.CurrentUser, @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "ShowSuperHidden", 1, 0, RegistryValueKind.DWord,
-         "Registry", null, null),
-
-        ("expand-to-current-folder", "展开到当前文件夹", "导航窗格自动展开到当前打开的文件夹",
-         "资源管理器", RiskLevel.Recommended, "仅改变导航窗格行为，不影响文件数据", "将 NavPaneExpandToCurrentFolder 改回 0 即可关闭",
-         RegistryHive.CurrentUser, @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "NavPaneExpandToCurrentFolder", 1, 0, RegistryValueKind.DWord,
-         "Registry", null, null),
-
-        ("classic-context", "经典右键菜单", "恢复 Windows 10 风格的完整右键菜单（跳过「显示更多选项」）",
-         "资源管理器", RiskLevel.Optional, "修改注册表 CLSID 可能影响右键菜单稳定性", "删除该 CLSID 键即可恢复 Win11 默认菜单",
-         RegistryHive.CurrentUser, @"Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32", "", "", null, RegistryValueKind.String,
-         "Registry", null, null),
-
-        ("restore-photo-viewer", "恢复照片查看器", "恢复 Windows 经典照片查看器为默认图片浏览器",
-         "资源管理器", RiskLevel.Optional, "照片查看器不支持部分新格式（如 HEIC/WebP）", "删除 PhotoViewer 注册表项即可还原",
-         RegistryHive.LocalMachine, @"SOFTWARE\Microsoft\Windows Photo Viewer\Capabilities\FileAssociations", ".jpg", "PhotoViewer.FileAssoc.Tiff", null, RegistryValueKind.String,
-         "Registry", null, null),
-
-        // ================================================================
-        // 任务栏与开始菜单
-        // ================================================================
-        ("taskbar-combine", "任务栏不合并", "任务栏按钮不合并，始终显示标签",
-         "任务栏", RiskLevel.Optional, "仅影响任务栏外观，可随时恢复", "将 TaskbarGlomLevel 改回 1 即可合并",
-         RegistryHive.CurrentUser, @"Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced", "TaskbarGlomLevel", 2, 1, RegistryValueKind.DWord,
-         "Registry", null, null),
-
-        ("disable-widgets", "关闭小组件", "禁用任务栏小组件按钮和资讯推送",
-         "任务栏", RiskLevel.Recommended, "关闭后无法使用天气、资讯等小组件功能", "将 AllowNewsAndInterests 改回 1 即可恢复",
-         RegistryHive.LocalMachine, @"SOFTWARE\Policies\Microsoft\Dsh", "AllowNewsAndInterests", 0, 1, RegistryValueKind.DWord,
-         "Registry", null, null),
-
-        ("disable-search-highlights", "关闭搜索亮点", "禁用任务栏搜索框的每日亮点图标和推荐",
-         "任务栏", RiskLevel.Recommended, "仅关闭搜索框的图形亮点，不影响搜索功能", "将 IsDynamicSearchBoxEnabled 改回 1 即可恢复",
-         RegistryHive.CurrentUser, @"Software\Microsoft\Windows\CurrentVersion\SearchSettings", "IsDynamicSearchBoxEnabled", 0, 1, RegistryValueKind.DWord,
-         "Registry", null, null),
-
-        // ================================================================
-        // 性能与电源
-        // ================================================================
-        ("game-mode", "游戏模式", "启用 Windows 游戏模式，优化游戏性能",
-         "性能与电源", RiskLevel.Recommended, "游戏模式可能影响后台应用的运行", "将 AllowAutoGameMode 改回 0 即可关闭",
-         RegistryHive.CurrentUser, @"Software\Microsoft\GameBar", "AllowAutoGameMode", 1, 0, RegistryValueKind.DWord,
-         "Registry", null, null),
-
-        ("vbs", "关闭 VBS 内存完整性", "禁用基于虚拟化的安全（VBS）和内存完整性检查",
-         "性能与电源", RiskLevel.Dangerous, "VBS 是重要安全特性，关闭后可能降低系统安全性", "将 EnableVirtualizationBasedSecurity 改回 1 即可重新启用",
-         RegistryHive.LocalMachine, @"SYSTEM\CurrentControlSet\Control\DeviceGuard", "EnableVirtualizationBasedSecurity", 0, 1, RegistryValueKind.DWord,
-         "Registry", null, null),
-
-        ("power-plan-high", "高性能电源计划", "切换至高性能电源模式，最大化 CPU 性能",
-         "性能与电源", RiskLevel.Optional, "高性能模式会增加耗电和发热，笔记本电池续航缩短", "选择其他电源计划即可恢复",
-         RegistryHive.LocalMachine, "", "", 0, 0, RegistryValueKind.DWord,
-         "PowerShell",
-         "powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c",
-         null),
-
-        ("power-plan-balanced", "平衡电源计划", "切换至平衡电源模式，兼顾性能与功耗",
-         "性能与电源", RiskLevel.Recommended, "默认推荐设置，适合大多数使用场景", "选择其他电源计划即可恢复",
-         RegistryHive.LocalMachine, "", "", 0, 0, RegistryValueKind.DWord,
-         "PowerShell",
-         "powercfg /setactive 381b4222-f694-41f0-9685-ff5bb260df2e",
-         null),
-
-        ("power-plan-saver", "节能电源计划", "切换至节能电源模式，最大化电池续航",
-         "性能与电源", RiskLevel.Optional, "节能模式会显著降低 CPU 性能，影响使用体验", "选择其他电源计划即可恢复",
-         RegistryHive.LocalMachine, "", "", 0, 0, RegistryValueKind.DWord,
-         "PowerShell",
-         "powercfg /setactive a1841308-3541-4fab-bc81-f71556f20b4a",
-         null),
-    };
-
-    private static readonly Dictionary<string, RecommendedAction> RecommendationMap = new()
+    private static Dictionary<string, RecommendedAction> BuildRecommendations()
     {
-        ["noauto-update"] = RecommendedAction.Enable,
-        ["update-fully-disable"] = RecommendedAction.Disable,
-        ["disable-defender"] = RecommendedAction.Disable,
-        ["defender-cloud-protection"] = RecommendedAction.Disable,
-        ["defender-tamper-protection"] = RecommendedAction.Disable,
-        ["defender-exclusion-path"] = RecommendedAction.None,
-        ["ad-id"] = RecommendedAction.Enable,
-        ["telemetry"] = RecommendedAction.Enable,
-        ["activity-history"] = RecommendedAction.Enable,
-        ["disable-copilot"] = RecommendedAction.Enable,
-        ["disable-tips"] = RecommendedAction.Enable,
-        ["show-extensions"] = RecommendedAction.Enable,
-        ["show-hidden-files"] = RecommendedAction.Enable,
-        ["show-system-files"] = RecommendedAction.Disable,
-        ["expand-to-current-folder"] = RecommendedAction.Enable,
-        ["classic-context"] = RecommendedAction.Enable,
-        ["restore-photo-viewer"] = RecommendedAction.Enable,
-        ["taskbar-combine"] = RecommendedAction.Enable,
-        ["disable-widgets"] = RecommendedAction.Enable,
-        ["disable-search-highlights"] = RecommendedAction.Enable,
-        ["game-mode"] = RecommendedAction.Enable,
-        ["vbs"] = RecommendedAction.Enable,
-        ["power-plan-high"] = RecommendedAction.None,
-        ["power-plan-balanced"] = RecommendedAction.None,
-        ["power-plan-saver"] = RecommendedAction.None,
-    };
+        var all = new Dictionary<string, RecommendedAction>();
+        foreach (var kv in SystemUIDefinitions.Recommendations) all[kv.Key] = kv.Value;
+        foreach (var kv in SecurityDefinitions.Recommendations) all[kv.Key] = kv.Value;
+        foreach (var kv in ExplorerDefinitions.Recommendations) all[kv.Key] = kv.Value;
+        foreach (var kv in AppearanceDefinitions.Recommendations) all[kv.Key] = kv.Value;
+        foreach (var kv in TaskbarDefinitions.Recommendations) all[kv.Key] = kv.Value;
+        foreach (var kv in PrivacyDefinitions.Recommendations) all[kv.Key] = kv.Value;
+        foreach (var kv in PerformanceDefinitions.Recommendations) all[kv.Key] = kv.Value;
+        return all;
+    }
 
     public List<SystemSettingItem> GetAllSettings()
     {
@@ -241,11 +91,7 @@ public class SystemOptimizerService : ISystemOptimizerService
         _settings = new List<SystemSettingItem>();
         foreach (var def in Definitions)
         {
-            bool isEnabled;
-            if (def.OperationType == "PowerShell")
-                isEnabled = false;
-            else
-                isEnabled = ReadCurrentState(def.Hive, def.KeyPath, def.ValueName, def.EnabledVal, def.Kind);
+            bool isEnabled = ReadCurrentState(def.Hive, def.KeyPath, def.ValueName, def.EnabledVal, def.Kind);
 
             RecommendationMap.TryGetValue(def.Id, out var rec);
 
@@ -276,6 +122,15 @@ public class SystemOptimizerService : ISystemOptimizerService
 
         try
         {
+            var oldValue = ReadCurrentState(def.Hive, def.KeyPath, def.ValueName, def.EnabledVal, def.Kind);
+            if (oldValue == enable)
+            {
+                Logger.Info($"Setting unchanged: {id} -> {(enable ? "enabled" : "disabled")} (already)");
+                return true;
+            }
+
+            BackupManager.RecordSnapshot(id, $"{def.Hive}\\{def.KeyPath}", def.ValueName, oldValue, enable);
+
             if (def.OperationType == "PowerShell")
             {
                 var cmd = enable ? def.EnablePsCmd : def.DisablePsCmd;
@@ -295,8 +150,8 @@ public class SystemOptimizerService : ISystemOptimizerService
                     subKey.SetValue(def.ValueName, value, def.Kind);
             }
 
-            var item = _settings?.Find(s => s.Id == id);
-            if (item != null) item.IsEnabled = enable;
+            SyncSettingsItem(id, enable);
+            Logger.Info($"Setting applied: {id} -> {(enable ? "enabled" : "disabled")}");
             return true;
         }
         catch (Exception)
@@ -317,6 +172,11 @@ public class SystemOptimizerService : ISystemOptimizerService
                 if (!string.IsNullOrEmpty(def.DisablePsCmd))
                     RunPowerShell(def.DisablePsCmd);
             }
+            else if (id == "classic-context")
+            {
+                using var rootKey = RegistryKey.OpenBaseKey(def.Hive, RegistryView.Default);
+                rootKey.DeleteSubKeyTree(@"Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}", throwOnMissingSubKey: false);
+            }
             else
             {
                 using var rootKey = RegistryKey.OpenBaseKey(def.Hive, RegistryView.Default);
@@ -325,14 +185,19 @@ public class SystemOptimizerService : ISystemOptimizerService
                     subKey.DeleteValue(def.ValueName, throwOnMissingValue: false);
             }
 
-            var item = _settings?.Find(s => s.Id == id);
-            if (item != null) item.IsEnabled = false;
+            SyncSettingsItem(id, false);
             return true;
         }
         catch (Exception)
         {
             return false;
         }
+    }
+
+    private static void SyncSettingsItem(string id, bool value)
+    {
+        var item = _settings?.Find(s => s.Id == id);
+        if (item != null) item.IsEnabledSilent(value);
     }
 
     public async Task UninstallBloatwareAsync(IProgress<(string status, int progress)>? progress = null, string[]? selectedPackages = null)
@@ -452,7 +317,7 @@ public class SystemOptimizerService : ISystemOptimizerService
             return kind switch
             {
                 RegistryValueKind.DWord => Convert.ToInt32(current) == Convert.ToInt32(enabledVal),
-                RegistryValueKind.String => string.IsNullOrEmpty(current.ToString()) == string.IsNullOrEmpty(enabledVal?.ToString()),
+                RegistryValueKind.String => string.Equals(current?.ToString(), enabledVal?.ToString(), StringComparison.OrdinalIgnoreCase),
                 _ => Equals(current, enabledVal)
             };
         }
@@ -460,5 +325,159 @@ public class SystemOptimizerService : ISystemOptimizerService
         {
             return false;
         }
+    }
+
+    public List<PresetDefinition> GetDefaultPresetDefinitions()
+    {
+        var all = GetAllSettings();
+
+        // 新机推荐：所有 RecommendedAction.Enable 的项设为启用
+        var newPcTargets = new Dictionary<string, bool>();
+        foreach (var item in all)
+        {
+            if (item.Recommendation == RecommendedAction.Enable)
+                newPcTargets[item.Id] = true;
+        }
+
+        // 极简模式：禁用干扰项
+        var minimalTargets = new Dictionary<string, bool>
+        {
+            ["disable-widgets"] = true,
+            ["disable-copilot"] = true,
+            ["disable-search-highlights"] = true,
+            ["disable-tips"] = true,
+            ["disable-lockscreen"] = true,
+            ["disable-transparency"] = true,
+            ["disable-animation"] = true,
+            ["disable-suggestions-in-start"] = true,
+            ["start-hide-recent-items"] = true,
+            ["start-hide-recently-added"] = true,
+            ["hide-taskbar-search"] = true,
+            ["hide-taskview"] = true,
+            ["disable-cortana"] = true,
+            ["taskbar-badge"] = false,
+            ["ad-id"] = true,
+            ["telemetry"] = true,
+            ["disable-tailored-experiences"] = true,
+            ["disable-cloud-search"] = true,
+            ["disable-web-search"] = true,
+            ["disable-activity-feed"] = true,
+        };
+
+        // 老电脑优化：关闭视觉效果和后台服务，启用游戏模式和高性能电源
+        var oldPcTargets = new Dictionary<string, bool>
+        {
+            ["disable-visual-effects"] = true,
+            ["disable-sysmain"] = true,
+            ["disable-wsearch"] = true,
+            ["disable-hibernate"] = true,
+            ["disable-background-apps"] = true,
+            ["disable-transparency"] = true,
+            ["disable-animation"] = true,
+            ["disable-xbox-services"] = true,
+            ["disable-prefetch"] = true,
+            ["disable-notification-tips"] = true,
+            ["disable-thumbnails"] = true,
+            ["disable-thumbnail-cache"] = true,
+            ["game-mode"] = true,
+            ["power-plan-high"] = true,
+            ["fast-menu"] = true,
+            ["vbs"] = true, // disable VBS for more performance
+        };
+
+        // 新机到手设置：基于小黑盒「新电脑新机到手必做设置」文章，20 项
+        var newPcSetupTargets = new Dictionary<string, bool>
+        {
+            // 桌面图标
+            ["show-this-pc"] = true,
+            ["show-control-panel-desktop"] = true,
+            // 隐私
+            ["ad-id"] = true,
+            ["disable-tailored-experiences"] = true,
+            ["disable-tips"] = true,
+            ["telemetry"] = true,
+            // 任务栏
+            ["disable-widgets"] = true,
+            ["disable-search-highlights"] = true,
+            ["disable-news-interests"] = true,
+            // 开始菜单
+            ["disable-suggestions-in-start"] = true,
+            ["disable-cortana"] = true,
+            // 资源管理器
+            ["show-extensions"] = true,
+            ["classic-context"] = true,
+            ["expand-to-current-folder"] = true,
+            ["show-full-path-in-title"] = true,
+            ["open-to-pc"] = true,
+            // 系统界面
+            ["enable-numlock"] = true,
+            ["disable-sticky-keys"] = true,
+            // 性能与更新
+            ["power-plan-high"] = true,
+            ["noauto-update"] = true,
+        };
+
+        return new List<PresetDefinition>
+        {
+            new()
+            {
+                Id = "new-pc",
+                Name = "新机推荐",
+                Tag = "推荐 · 安全",
+                Description = "一键启用所有推荐的安全优化项，关闭广告跟踪、遥测数据、活动历史，适合新电脑或重装系统后初始化使用",
+                IconCode = "🛡️",
+                Scene = "新装系统/重装系统后初始化，追求隐私安全无广告，不改动系统核心功能",
+                Effect = "关闭广告跟踪、遥测收集、冗余弹窗，降低后台隐私泄露风险，无副作用",
+                Notice = "仅修改系统界面和隐私配置，不影响系统更新、安全防护、硬件驱动，新手可放心使用",
+                TargetStates = newPcTargets
+            },
+            new()
+            {
+                Id = "new-pc-setup",
+                Name = "新机到手设置",
+                Tag = "必做 · 全面",
+                Description = "基于小黑盒新机攻略：桌面图标、隐私四项全关、任务栏精简、资源管理器增强、高性能电源、暂停更新，一步到位",
+                IconCode = "🆕",
+                Scene = "新电脑开箱 / 重装系统后第一步，覆盖桌面、隐私、资源管理器、电源、更新等核心配置",
+                Effect = "桌面显示此电脑+控制面板，关闭广告跟踪与遥测，精简任务栏和开始菜单，开启高性能电源，暂停自动更新",
+                Notice = "含暂停 Windows Update 操作，后续可手动恢复。Nvidia 显卡驱动设置和存储感知需手动操作",
+                TargetStates = newPcSetupTargets
+            },
+            new()
+            {
+                Id = "minimal",
+                Name = "极简模式",
+                Tag = "界面精简",
+                Description = "关闭小组件、搜索框、动画效果、任务视图，精简系统界面，降低资源占用，追求纯净桌面体验",
+                IconCode = "🎯",
+                Scene = "追求纯净桌面体验，不需要小组件、搜索框等冗余功能",
+                Effect = "精简任务栏、开始菜单、资源管理器，减少UI动画资源占用，桌面更清爽",
+                Notice = "所有界面修改均可一键恢复，不会破坏系统文件，部分设置需重启资源管理器生效",
+                TargetStates = minimalTargets
+            },
+            new()
+            {
+                Id = "old-pc",
+                Name = "老电脑优化",
+                Tag = "性能优先",
+                Description = "关闭动画效果、启用高性能电源计划、禁用 VBS，最大化释放硬件性能，适合低配置老旧设备",
+                IconCode = "⚡",
+                Scene = "低配置老旧电脑、机械硬盘设备，优先保证运行流畅度",
+                Effect = "释放 10%-20% 内存和磁盘占用，提升开机和操作流畅度",
+                Notice = "关闭 VBS 会降低系统安全性，但可显著提升游戏和日常使用性能。所有设置均可恢复",
+                TargetStates = oldPcTargets
+            }
+        };
+    }
+
+    public List<PresetDefinition> GetPresetDefinitions()
+    {
+        return PresetStore.LoadPresets(GetDefaultPresetDefinitions);
+    }
+
+    public void RestoreCategory(IEnumerable<string> ids)
+    {
+        foreach (var id in ids)
+            RevertSetting(id);
     }
 }

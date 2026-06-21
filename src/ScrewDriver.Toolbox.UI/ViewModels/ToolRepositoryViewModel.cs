@@ -1,11 +1,13 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Threading;
 using ScrewDriver.Toolbox.Core.Models;
 using System.IO;
 using ScrewDriver.Toolbox.Core.Services;
-using ScrewDriver.Toolbox.UI.Views;
+using ScrewDriver.Toolbox.UI.Views.Controls;
 using Application = System.Windows.Application;
 using MessageBox = System.Windows.MessageBox;
 
@@ -25,6 +27,7 @@ public class ToolRepositoryViewModel : BaseViewModel
     public ObservableCollection<ToolItem> AllTools { get; }
     public ObservableCollection<ToolItem> FilteredTools { get; } = new();
     public ObservableCollection<ToolItem> RecommendedTools { get; } = new();
+    private readonly ICollectionView _toolsView;
 
     public bool IsScanning
     {
@@ -51,13 +54,13 @@ public class ToolRepositoryViewModel : BaseViewModel
     public string SearchText
     {
         get => _searchText;
-        set { if (SetProperty(ref _searchText, value)) FilterTools(); }
+        set { if (SetProperty(ref _searchText, value)) _toolsView.Refresh(); }
     }
 
     public string SelectedCategory
     {
         get => _selectedCategory;
-        set { if (SetProperty(ref _selectedCategory, value)) FilterTools(); }
+        set { if (SetProperty(ref _selectedCategory, value)) _toolsView.Refresh(); }
     }
 
     public RelayCommand LaunchToolCommand { get; }
@@ -71,7 +74,10 @@ public class ToolRepositoryViewModel : BaseViewModel
     public ToolRepositoryViewModel()
     {
         AllTools = new ObservableCollection<ToolItem>(ToolRegistry.GetAllTools());
-        FilterTools();
+        foreach (var tool in AllTools)
+            FilteredTools.Add(tool);
+        _toolsView = CollectionViewSource.GetDefaultView(FilteredTools);
+        _toolsView.Filter = FilterToolItem;
         LoadRecommendedTools();
 
         LaunchToolCommand = new RelayCommand(param =>
@@ -85,7 +91,7 @@ public class ToolRepositoryViewModel : BaseViewModel
                 if (scenarioName == "game-accelerate" &&
                     Application.Current.MainWindow is MainWindow mw)
                 {
-                    mw.NavigateToPageByTag("SystemOptimizerPage");
+                    if (mw.DataContext is MainViewModel mvm) mvm.NavigateTo("Setting:性能与电源");
                 }
                 return;
             }
@@ -286,7 +292,7 @@ public class ToolRepositoryViewModel : BaseViewModel
         Application.Current.Dispatcher.Invoke(() =>
         {
             // Refresh filtered list
-            FilterTools();
+            _toolsView.Refresh();
         });
 
         System.Windows.MessageBox.Show(
@@ -304,7 +310,7 @@ public class ToolRepositoryViewModel : BaseViewModel
             tool.IconPath = null;
             // Don't clear IsInstalled — winget detection result is preserved
         }
-        FilterTools();
+        _toolsView.Refresh();
         _ = InstalledToolsCache.Instance.RefreshAsync();
     }
 
@@ -350,7 +356,7 @@ public class ToolRepositoryViewModel : BaseViewModel
             var existIcon = IconExtractor.ExtractAndSaveIcon(exePath,
                 Path.Combine(Path.GetTempPath(), "ScrewDriver.Toolbox", "icons"));
             if (existIcon != null) existing.IconPath = existIcon;
-            FilterTools();
+            _toolsView.Refresh();
             return;
         }
 
@@ -363,7 +369,7 @@ public class ToolRepositoryViewModel : BaseViewModel
             var matchIcon = IconExtractor.ExtractAndSaveIcon(exePath,
                 Path.Combine(Path.GetTempPath(), "ScrewDriver.Toolbox", "icons"));
             if (matchIcon != null) matched.IconPath = matchIcon;
-            FilterTools();
+            _toolsView.Refresh();
             return;
         }
 
@@ -389,26 +395,27 @@ public class ToolRepositoryViewModel : BaseViewModel
 
             ToolRegistry.AddCustomTool(newTool);
             AllTools.Add(newTool);
-            FilterTools();
+            FilteredTools.Add(newTool);
+            _toolsView.Refresh();
             _ = InstalledToolsCache.Instance.RefreshAsync();
         }
     }
 
-    private void FilterTools()
+    private bool FilterToolItem(object obj)
     {
-        FilteredTools.Clear();
-        var query = AllTools.AsEnumerable();
+        if (obj is not ToolItem tool) return false;
 
         if (!string.IsNullOrWhiteSpace(SearchText))
-            query = query.Where(t =>
-                t.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
-                t.Description.Contains(SearchText, StringComparison.OrdinalIgnoreCase));
+        {
+            if (!tool.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) &&
+                !tool.Description.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
+                return false;
+        }
 
-        if (SelectedCategory != "全部")
-            query = query.Where(t => t.Category == SelectedCategory);
+        if (SelectedCategory != "全部" && tool.Category != SelectedCategory)
+            return false;
 
-        foreach (var tool in query)
-            FilteredTools.Add(tool);
+        return true;
     }
 
     private async void CheckForUpdatesAsync()
@@ -427,7 +434,7 @@ public class ToolRepositoryViewModel : BaseViewModel
                     tool.HasUpdate = !string.IsNullOrEmpty(tool.WingetId) &&
                                      updatableIds.Contains(tool.WingetId);
                 }
-                FilterTools();
+                _toolsView.Refresh();
             });
         });
 
