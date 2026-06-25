@@ -21,4 +21,5 @@ public class PresetItem
     public ICommand? ApplyCommand { get; set; }
     public ICommand? ViewDetailCommand { get; set; }
     public ICommand? EditCommand { get; set; }
+    public ICommand? ExportCommand { get; set; }
 }

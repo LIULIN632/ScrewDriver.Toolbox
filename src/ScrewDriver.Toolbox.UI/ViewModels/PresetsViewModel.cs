@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Windows;
+using Microsoft.Win32;
 using ScrewDriver.Toolbox.Core.Models;
 using ScrewDriver.Toolbox.SystemTools.Services;
 using ScrewDriver.Toolbox.Core.Services;
@@ -17,8 +18,13 @@ public class PresetsViewModel : BaseViewModel
 
     public ObservableCollection<PresetItem> PresetList { get; } = new();
 
+    public RelayCommand ExportAllCommand { get; }
+    public RelayCommand ImportCommand { get; }
+
     public PresetsViewModel()
     {
+        ExportAllCommand = new RelayCommand(_ => ExportAllPresets());
+        ImportCommand = new RelayCommand(_ => ImportPresets());
         InitPresets();
     }
 
@@ -44,6 +50,7 @@ public class PresetsViewModel : BaseViewModel
             item.ApplyCommand = new RelayCommand(_ => ApplyPreset(item));
             item.ViewDetailCommand = new RelayCommand(_ => ShowDetail(item));
             item.EditCommand = new RelayCommand(_ => EditPreset(item));
+            item.ExportCommand = new RelayCommand(_ => ExportPreset(item));
             PresetList.Add(item);
         }
     }
@@ -122,5 +129,109 @@ public class PresetsViewModel : BaseViewModel
     {
         PresetStore.ResetToDefaults(() => _service.GetDefaultPresetDefinitions());
         RefreshPresets();
+    }
+
+    private void ExportAllPresets()
+    {
+        var dialog = new System.Windows.Forms.FolderBrowserDialog
+        {
+            Description = "选择导出文件夹"
+        };
+
+        if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+        {
+            try
+            {
+                PresetStore.ExportAllPresets(dialog.SelectedPath);
+                MessageBox.Show($"所有预设已导出到：\n{dialog.SelectedPath}", "导出完成",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"导出失败：{ex.Message}", "错误",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+    }
+
+    private void ImportPresets()
+    {
+        var dialog = new System.Windows.Forms.OpenFileDialog
+        {
+            Title = "选择预设文件",
+            Filter = "JSON 文件 (*.json)|*.json|所有文件 (*.*)|*.*",
+            Multiselect = true
+        };
+
+        if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+        {
+            try
+            {
+                var imported = 0;
+                foreach (var file in dialog.FileNames)
+                {
+                    var preset = PresetStore.ImportPreset(file);
+                    if (preset != null)
+                    {
+                        imported++;
+                    }
+                }
+
+                if (imported > 0)
+                {
+                    RefreshPresets();
+                    MessageBox.Show($"成功导入 {imported} 个预设方案", "导入完成",
+                        MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show("未找到有效的预设文件", "提示",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"导入失败：{ex.Message}", "错误",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+    }
+
+    private void ExportPreset(PresetItem preset)
+    {
+        var dialog = new System.Windows.Forms.SaveFileDialog
+        {
+            Title = "导出预设",
+            FileName = $"{preset.Name}.json",
+            Filter = "JSON 文件 (*.json)|*.json"
+        };
+
+        if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+        {
+            try
+            {
+                var def = new PresetDefinition
+                {
+                    Id = preset.Id,
+                    Name = preset.Name,
+                    Tag = preset.Tag,
+                    Description = preset.Description,
+                    IconCode = preset.IconCode,
+                    Scene = preset.Scene,
+                    Effect = preset.Effect,
+                    Notice = preset.Notice,
+                    TargetStates = new Dictionary<string, bool>(preset.TargetStates)
+                };
+
+                PresetStore.ExportPreset(def, dialog.FileName);
+                MessageBox.Show($"预设「{preset.Name}」已导出到：\n{dialog.FileName}", "导出完成",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"导出失败：{ex.Message}", "错误",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
     }
 }

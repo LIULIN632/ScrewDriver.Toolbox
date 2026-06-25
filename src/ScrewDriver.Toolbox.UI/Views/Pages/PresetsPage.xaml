@@ -9,15 +9,31 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Margin="0,0,0,24">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="一键预设方案" FontSize="26" FontWeight="Bold"
-                           Foreground="{DynamicResource TextPrimaryBrush}"/>
-                <TextBlock Text="恢复默认" FontSize="12" VerticalAlignment="Bottom" Margin="14,0,0,4"
-                           Foreground="{DynamicResource PrimaryBrush}" Cursor="Hand"
-                           TextDecorations="Underline" MouseLeftButtonDown="ResetDefaults_Click"/>
-            </StackPanel>
-            <TextBlock Text="批量应用系统配置，一键适配不同使用场景" FontSize="14"
-                       Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,6,0,0"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="一键预设方案" FontSize="26" FontWeight="Bold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Text="恢复默认" FontSize="12" VerticalAlignment="Bottom" Margin="14,0,0,4"
+                                   Foreground="{DynamicResource PrimaryBrush}" Cursor="Hand"
+                                   TextDecorations="Underline" MouseLeftButtonDown="ResetDefaults_Click"/>
+                    </StackPanel>
+                    <TextBlock Text="批量应用系统配置，一键适配不同使用场景" FontSize="14"
+                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,6,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom">
+                    <Button Content="导入" Height="32" FontSize="12" Padding="14,0"
+                            Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,8,0"
+                            Command="{Binding ImportCommand}"/>
+                    <Button Content="导出所有" Height="32" FontSize="12" Padding="14,0"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{Binding ExportAllCommand}"/>
+                </StackPanel>
+            </Grid>
         </StackPanel>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
@@ -49,6 +65,9 @@
                                            TextWrapping="Wrap"
                                            TextTrimming="CharacterEllipsis" Margin="0,0,0,16"/>
                                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                    <Button Content="导出" Height="30" FontSize="11" Padding="12,0"
+                                            Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,6,0"
+                                            Command="{Binding ExportCommand}"/>
                                     <Button Content="编辑" Height="30" FontSize="11" Padding="12,0"
                                             Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,6,0"
                                             Command="{Binding EditCommand}"/>
