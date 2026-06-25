@@ -30,6 +30,7 @@
                 <!-- Parent item -->
                 <Border x:Name="NavBorder" Margin="4,3" Padding="14,10" CornerRadius="10"
                         Background="Transparent" Cursor="Hand"
+                        BorderThickness="0,0,0,0"
                         MouseLeftButtonDown="NavItem_Click" Tag="{Binding Tag}">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -78,6 +79,8 @@
             <DataTemplate.Triggers>
                 <DataTrigger Binding="{Binding IsActive}" Value="True">
                     <Setter TargetName="NavBorder" Property="Background" Value="{DynamicResource PrimaryLightBrush}"/>
+                    <Setter TargetName="NavBorder" Property="BorderThickness" Value="0,0,0,3"/>
+                    <Setter TargetName="NavBorder" Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
                 </DataTrigger>
             </DataTemplate.Triggers>
         </DataTemplate>
@@ -91,13 +94,44 @@
 
         <!-- Left sidebar -->
         <Border Background="{DynamicResource NavBackgroundBrush}">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <StackPanel Margin="8,12">
-                    <TextBlock Text="ScrewDriver" FontSize="24" FontWeight="Bold"
-                               Foreground="{DynamicResource PrimaryBrush}" Margin="16,8,12,20"/>
-                    <ItemsControl ItemsSource="{Binding NavigationItems}" Margin="0,4,0,0"/>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Logo -->
+                <StackPanel Grid.Row="0" Margin="16,16,12,20" Orientation="Horizontal">
+                    <Border Width="32" Height="32" CornerRadius="8"
+                            Background="{DynamicResource PrimaryBrush}" Margin="0,0,10,0">
+                        <TextBlock Text="🔧" FontSize="18"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="ScrewDriver" FontSize="18" FontWeight="Bold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+                        <TextBlock Text="v1.0.0" FontSize="11"
+                                   Foreground="{DynamicResource TextTertiaryBrush}"/>
+                    </StackPanel>
                 </StackPanel>
-            </ScrollViewer>
+
+                <!-- Navigation -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="8,0">
+                        <ItemsControl ItemsSource="{Binding NavigationItems}"/>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- Bottom version info -->
+                <Border Grid.Row="2" Margin="16,0,16,12"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1,0,0"
+                        Padding="0,10,0,0">
+                    <TextBlock Text="基于 .NET 10 + WPF" FontSize="11"
+                               Foreground="{DynamicResource TextTertiaryBrush}"
+                               HorizontalAlignment="Center"/>
+                </Border>
+            </Grid>
         </Border>
 
         <!-- Right content area -->

@@ -11,7 +11,7 @@
             <Setter Property="Margin" Value="0,0,8,8"/>
         </Style>
     </UserControl.Resources>
-    <Grid Margin="28,24">
+    <Grid Margin="4,4">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -122,7 +122,7 @@
                                     <TextBlock Text="{Binding StatusText}" FontSize="11"
                                                Foreground="{Binding StatusColor, Converter={StaticResource StringToBrush}}"/>
                                     <TextBlock Text=" · 方式: " FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}"/>
-                                    <TextBlock Text="{Binding OperationType}" FontSize="11" Foreground="#999999"/>
+                                    <TextBlock Text="{Binding OperationType}" FontSize="11" Foreground="{DynamicResource TextTertiaryBrush}"/>
                                 </StackPanel>
                             </Grid>
                         </Border>

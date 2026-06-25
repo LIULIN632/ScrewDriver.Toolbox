@@ -42,8 +42,21 @@ public partial class App : System.Windows.Application
 
     private static void ApplyCurrentTheme()
     {
-        // Theme files (LightTheme.xaml / DarkTheme.xaml) to be added in future.
-        // Current colors are defined in App.xaml MergedDictionaries (Colors.xaml + Styles.xaml).
+        var app = Current;
+        if (app == null) return;
+
+        // Replace Colors.xaml with the appropriate theme file
+        app.Resources.MergedDictionaries.Clear();
+        app.Resources.MergedDictionaries.Add(new ResourceDictionary
+        {
+            Source = ThemeService.IsDarkMode()
+                ? new Uri("Themes/DarkTheme.xaml", UriKind.Relative)
+                : new Uri("Themes/LightTheme.xaml", UriKind.Relative)
+        });
+        app.Resources.MergedDictionaries.Add(new ResourceDictionary
+        {
+            Source = new Uri("Themes/Styles.xaml", UriKind.Relative)
+        });
     }
 
     private static void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)

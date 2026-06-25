@@ -38,7 +38,7 @@
                         <TextBlock Text="预计效果" FontSize="13" FontWeight="SemiBold"/>
                         <TextBlock Text="{Binding Effect}" FontSize="12"
                                    Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,12"/>
-                        <TextBlock Text="注意事项" FontSize="13" FontWeight="SemiBold" Foreground="#F59E0B"/>
+                        <TextBlock Text="注意事项" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource WarningBrush}"/>
                         <TextBlock Text="{Binding Notice}" FontSize="12"
                                    Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0"/>
                     </StackPanel>

@@ -25,4 +25,9 @@
     <SolidColorBrush x:Key="TextSecondaryBrush" Color="#475569"/>
     <SolidColorBrush x:Key="TextTertiaryBrush" Color="#94A3B8"/>
 
+    <!-- 扩展 -->
+    <SolidColorBrush x:Key="WarningBackgroundBrush" Color="#FEF3C7"/>
+    <SolidColorBrush x:Key="WarningBorderBrush" Color="#D97706"/>
+    <SolidColorBrush x:Key="DangerBackgroundBrush" Color="#FEE2E2"/>
+
 </ResourceDictionary>
