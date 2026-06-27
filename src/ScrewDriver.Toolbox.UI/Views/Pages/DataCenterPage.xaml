@@ -72,6 +72,45 @@
             </Border>
         </Grid>
 
+        <!-- 第二行：配置管理 -->
+        <Grid Grid.Row="2" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Style="{StaticResource CardStyle}" Margin="0,0,8,0" Padding="16,14">
+                <StackPanel>
+                    <TextBlock Text="💾" FontSize="24" Margin="0,0,0,8"/>
+                    <TextBlock Text="配置导入/导出" FontSize="14" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    <TextBlock Text="保存/恢复系统优化配置" FontSize="12"
+                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,12"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="导出配置" Height="30" FontSize="12" Margin="0,0,6,0"
+                                Style="{StaticResource PrimaryButtonStyle}"
+                                Command="{Binding ExportConfigCommand}"/>
+                        <Button Content="导入配置" Height="30" FontSize="12"
+                                Style="{StaticResource SecondaryButtonStyle}"
+                                Command="{Binding ImportConfigCommand}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border Style="{StaticResource CardStyle}" Margin="8,0,0,0" Padding="16,14">
+                <StackPanel>
+                    <TextBlock Text="💿" FontSize="24" Margin="0,0,0,8"/>
+                    <TextBlock Text="Autounattend.xml" FontSize="14" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    <TextBlock Text="自动化装机配置文件生成" FontSize="12"
+                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,12"/>
+                    <Button Content="生成 XML" Height="30" FontSize="12"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{Binding GenerateAutounattendCommand}"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
         <!-- 下方双栏：备份列表 + 日志/报告 -->
         <Grid Grid.Row="2">
             <Grid.ColumnDefinitions>

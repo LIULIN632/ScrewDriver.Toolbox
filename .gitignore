@@ -49,3 +49,6 @@ tools/
 工具清单.md
 软件及地址.md
 src/ScrewDriver.Toolbox.UI/Tools/
+check_vs_designer.sh
+DESIGNER_GUIDE.md
+.acad-version

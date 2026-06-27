@@ -2,8 +2,10 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
+using Microsoft.Win32;
 using ScrewDriver.Toolbox.Core.Models;
 using ScrewDriver.Toolbox.Core.Services;
+using ScrewDriver.Toolbox.UI.Common;
 using Clipboard = System.Windows.Clipboard;
 using MessageBox = System.Windows.MessageBox;
 
@@ -65,6 +67,9 @@ public class DataCenterViewModel : BaseViewModel
         set => SetProperty(ref _backupRemark, value);
     }
 
+    public ICommand ExportConfigCommand { get; }
+    public ICommand ImportConfigCommand { get; }
+    public ICommand GenerateAutounattendCommand { get; }
     public ICommand CreateBackupCommand { get; }
     public ICommand RestoreBackupCommand { get; }
     public ICommand DeleteBackupCommand { get; }
@@ -76,6 +81,9 @@ public class DataCenterViewModel : BaseViewModel
 
     public DataCenterViewModel()
     {
+        ExportConfigCommand = new RelayCommand(_ => ExportConfig());
+        ImportConfigCommand = new RelayCommand(_ => ImportConfig());
+        GenerateAutounattendCommand = new RelayCommand(_ => GenerateAutounattend());
         CreateBackupCommand = new RelayCommand(_ => CreateBackup());
         RestoreBackupCommand = new RelayCommand(_ => RestoreBackup());
         DeleteBackupCommand = new RelayCommand(_ => DeleteBackup());
@@ -87,6 +95,101 @@ public class DataCenterViewModel : BaseViewModel
 
         RefreshBackupList();
         RefreshLogs();
+    }
+
+    private void ExportConfig()
+    {
+        var dialog = new Microsoft.Win32.SaveFileDialog
+        {
+            Title = "导出系统配置",
+            FileName = $"ScrewDriver_Config_{DateTime.Now:yyyyMMdd_HHmmss}.json",
+            Filter = "JSON 文件|*.json"
+        };
+        if (dialog.ShowDialog() == true)
+        {
+            try
+            {
+                var snapshots = new List<SettingSnapshot>();
+                var service = new SystemTools.Services.SystemOptimizerService();
+                foreach (var setting in service.GetAllSettings())
+                {
+                    snapshots.Add(new SettingSnapshot
+                    {
+                        Key = setting.Id,
+                        ValueName = setting.Name,
+                        CurrentValue = setting.IsEnabled
+                    });
+                }
+                ConfigManager.ExportConfig(dialog.FileName, snapshots);
+                MessageBox.Show($"配置已导出到：\n{dialog.FileName}", "导出成功",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"导出失败：{ex.Message}", "错误",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+    }
+
+    private void ImportConfig()
+    {
+        var dialog = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = "导入系统配置",
+            Filter = "JSON 文件|*.json",
+            Multiselect = false
+        };
+        if (dialog.ShowDialog() == true)
+        {
+            try
+            {
+                var result = MessageBox.Show(
+                    "导入配置将覆盖当前系统设置，确定继续吗？",
+                    "确认导入", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (result != MessageBoxResult.Yes) return;
+
+                var config = ConfigManager.LoadConfig(dialog.FileName);
+                var success = 0;
+                foreach (var (key, enabled) in config)
+                {
+                    var ok = RegistryHelper.ApplySettingById(key, enabled);
+                    if (ok) success++;
+                }
+
+                MessageBox.Show($"配置导入完成\n成功应用 {success}/{config.Count} 项设置", "导入完成",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"导入失败：{ex.Message}", "错误",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+    }
+
+    private void GenerateAutounattend()
+    {
+        var dialog = new Microsoft.Win32.SaveFileDialog
+        {
+            Title = "保存 Autounattend.xml",
+            FileName = "Autounattend.xml",
+            Filter = "XML 文件|*.xml"
+        };
+        if (dialog.ShowDialog() == true)
+        {
+            try
+            {
+                AutounattendXmlGenerator.GenerateToFile(dialog.FileName);
+                MessageBox.Show($"Autounattend.xml 已生成到：\n{dialog.FileName}\n\n请将其放置在 Windows 安装U盘根目录。", "生成成功",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"生成失败：{ex.Message}", "错误",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
     }
 
     private void RefreshBackupList()
