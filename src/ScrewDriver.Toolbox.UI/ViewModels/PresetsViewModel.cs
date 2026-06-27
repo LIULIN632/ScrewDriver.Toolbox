@@ -51,6 +51,7 @@ public class PresetsViewModel : BaseViewModel
             item.ViewDetailCommand = new RelayCommand(_ => ShowDetail(item));
             item.EditCommand = new RelayCommand(_ => EditPreset(item));
             item.ExportCommand = new RelayCommand(_ => ExportPreset(item));
+            item.ExportAutounattendCommand = new RelayCommand(_ => ExportAutounattend(item));
             PresetList.Add(item);
         }
     }
@@ -226,6 +227,35 @@ public class PresetsViewModel : BaseViewModel
                 PresetStore.ExportPreset(def, dialog.FileName);
                 MessageBox.Show($"预设「{preset.Name}」已导出到：\n{dialog.FileName}", "导出完成",
                     MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"导出失败：{ex.Message}", "错误",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+    }
+
+    private void ExportAutounattend(PresetItem preset)
+    {
+        var dialog = new System.Windows.Forms.SaveFileDialog
+        {
+            Title = "导出 Autounattend.xml",
+            FileName = "Autounattend.xml",
+            Filter = "XML 文件 (*.xml)|*.xml"
+        };
+
+        if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+        {
+            try
+            {
+                AutounattendXmlGenerator.GenerateFromPreset(preset);
+                AutounattendXmlGenerator.GenerateToFile(dialog.FileName);
+                MessageBox.Show(
+                    $"Autounattend.xml 已导出到：\n{dialog.FileName}\n\n" +
+                    $"基于预设「{preset.Name}」生成，包含 {preset.TargetStates.Count} 项优化设置。\n" +
+                    "请将其放置在 Windows 安装U盘根目录。",
+                    "导出完成", MessageBoxButton.OK, MessageBoxImage.Information);
             }
             catch (Exception ex)
             {

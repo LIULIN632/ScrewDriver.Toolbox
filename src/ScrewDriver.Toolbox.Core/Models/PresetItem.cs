@@ -22,4 +22,5 @@ public class PresetItem
     public ICommand? ViewDetailCommand { get; set; }
     public ICommand? EditCommand { get; set; }
     public ICommand? ExportCommand { get; set; }
+    public ICommand? ExportAutounattendCommand { get; set; }
 }

@@ -1,4 +1,6 @@
 using System.Text;
+using System.Text.Json;
+using ScrewDriver.Toolbox.Core.Models;
 
 namespace ScrewDriver.Toolbox.Core.Services;
 
@@ -124,6 +126,18 @@ public static class AutounattendXmlGenerator
         sb.AppendLine("</unattend>");
 
         return sb.ToString();
+    }
+
+    /// <summary>从预设生成 Autounattend.xml</summary>
+    public static string GenerateFromPreset(PresetItem preset, string locale = "zh-CN")
+    {
+        var states = preset.TargetStates;
+        return Generate(
+            locale: locale,
+            disableTelemetry: states.GetValueOrDefault("telemetry", false),
+            disableCortana: states.GetValueOrDefault("disable-copilot", false),
+            disableDefender: states.GetValueOrDefault("disable-defender", false)
+        );
     }
 
     /// <summary>生成并保存到文件</summary>
