@@ -23,6 +23,8 @@
         <DataTemplate DataType="{x:Type vm:HardwareViewModel}"><pages:HardwarePage/></DataTemplate>
         <DataTemplate DataType="{x:Type vm:DataCenterViewModel}"><pages:DataCenterPage/></DataTemplate>
         <DataTemplate DataType="{x:Type vm:SettingsViewModel}"><pages:SettingsPage/></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:DevEnvViewModel}"><pages:DevEnvView/></DataTemplate>
+        <DataTemplate DataType="{x:Type vm:FileConvertViewModel}"><pages:FileConvertView/></DataTemplate>
 
         <!-- Sidebar nav item template -->
         <DataTemplate DataType="{x:Type models:NavigationItem}">

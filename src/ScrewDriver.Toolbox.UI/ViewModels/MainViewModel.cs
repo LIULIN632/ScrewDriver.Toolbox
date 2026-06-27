@@ -84,6 +84,8 @@ public class MainViewModel : BaseViewModel
         NavigationItems.Add(new NavigationItem { Title = "系统修复", IconCode = "🔧", Tag = "RepairCenterPage" });
         NavigationItems.Add(new NavigationItem { Title = "硬件信息", IconCode = "💻", Tag = "HardwarePage" });
         NavigationItems.Add(new NavigationItem { Title = "设置", IconCode = "⚡", Tag = "SettingsPage" });
+        NavigationItems.Add(new NavigationItem { Title = "开发环境", IconCode = "🧑‍💻", Tag = "DevEnvPage" });
+        NavigationItems.Add(new NavigationItem { Title = "文件转换", IconCode = "🔄", Tag = "FileConvertPage" });
 
         UpdateActiveState();
     }
@@ -129,6 +131,8 @@ public class MainViewModel : BaseViewModel
             "HardwarePage" => new HardwareViewModel(),
             "DataCenterPage" => new DataCenterViewModel(),
             "SettingsPage" => new SettingsViewModel(),
+            "DevEnvPage" => new DevEnvViewModel(),
+            "FileConvertPage" => new FileConvertViewModel(),
             _ => CurrentViewModel
         };
 

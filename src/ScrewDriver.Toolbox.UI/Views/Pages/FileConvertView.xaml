@@ -1,0 +1,47 @@
+<UserControl x:Class="ScrewDriver.Toolbox.UI.Views.Pages.FileConvertView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             AllowDrop="True" Drop="UserControl_Drop"
+             Height="600" Width="800">
+    <UserControl.Resources>
+        <Style x:Key="DashedBorder" TargetType="Border">
+            <Setter Property="BorderBrush" Value="Gray"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="CornerRadius" Value="5"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+    </UserControl.Resources>
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="图片格式转换" FontSize="20" FontWeight="Bold" Margin="0,0,0,10"/>
+
+        <!-- 格式选择与转换按钮 -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
+            <TextBlock Text="目标格式：" VerticalAlignment="Center"/>
+            <ComboBox x:Name="FormatCombo" Width="100" SelectedIndex="0" Margin="10,0">
+                <ComboBoxItem Content="PNG"/>
+                <ComboBoxItem Content="JPG"/>
+                <ComboBoxItem Content="BMP"/>
+            </ComboBox>
+            <Button Content="批量转换" Command="{Binding ConvertCommand}" CommandParameter="{Binding ElementName=FormatCombo, Path=SelectedItem.Content}" Margin="20,0,0,0" Padding="15,5"/>
+        </StackPanel>
+
+        <!-- 拖拽提示与文件列表 -->
+        <Border Grid.Row="2" Style="{StaticResource DashedBorder}">
+            <DataGrid ItemsSource="{Binding FileList}" AutoGenerateColumns="False" IsReadOnly="True" Background="Transparent" BorderThickness="0">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="文件路径" Binding="{Binding FilePath}" Width="*"/>
+                    <DataGridTextColumn Header="大小" Binding="{Binding SizeKB}" Width="100"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+        <TextBlock Grid.Row="2" Text="将图片拖拽到此处" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="24" Foreground="Gray" IsHitTestVisible="False"/>
+    </Grid>
+</UserControl>

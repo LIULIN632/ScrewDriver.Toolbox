@@ -1,0 +1,56 @@
+<UserControl x:Class="ScrewDriver.Toolbox.UI.Views.Pages.DevEnvView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" Height="600" Width="800">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- 1. 环境版本管理 -->
+        <TextBlock Grid.Row="0" Text="环境版本管理 (Node.js)" FontSize="20" FontWeight="Bold" Margin="0,0,0,10"/>
+
+        <DataGrid Grid.Row="1" ItemsSource="{Binding NodeVersions}" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="版本号" Binding="{Binding Version}" Width="*"/>
+                <DataGridTextColumn Header="状态" Binding="{Binding Status}" Width="100"/>
+                <DataGridTemplateColumn Header="操作" Width="120">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="下载" Command="{Binding DataContext.DownloadCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Version}" Margin="2"/>
+                                <Button Content="切换" Command="{Binding DataContext.SwitchCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding Version}" Margin="2"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- 2. 端口占用管理 -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,20,0,10">
+            <TextBlock Text="端口占用管理 (TCP)" FontSize="20" FontWeight="Bold"/>
+            <Button Content="刷新" Command="{Binding RefreshPortsCommand}" Margin="20,0,0,0" Padding="10,5"/>
+        </StackPanel>
+
+        <DataGrid Grid.Row="3" ItemsSource="{Binding ActivePorts}" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="本地端口" Binding="{Binding Port}" Width="100"/>
+                <DataGridTextColumn Header="状态" Binding="{Binding State}" Width="120"/>
+                <DataGridTextColumn Header="PID" Binding="{Binding PID}" Width="100"/>
+                <DataGridTemplateColumn Header="操作" Width="100">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Button Content="结束进程" Command="{Binding DataContext.KillProcessCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding PID}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>
