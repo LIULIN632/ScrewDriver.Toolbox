@@ -83,7 +83,6 @@ public class MainViewModel : BaseViewModel
         });
         NavigationItems.Add(new NavigationItem { Title = "系统修复", IconCode = "🔧", Tag = "RepairCenterPage" });
         NavigationItems.Add(new NavigationItem { Title = "硬件信息", IconCode = "💻", Tag = "HardwarePage" });
-        NavigationItems.Add(new NavigationItem { Title = "数据中心", IconCode = "📊", Tag = "DataCenterPage" });
         NavigationItems.Add(new NavigationItem { Title = "设置", IconCode = "⚡", Tag = "SettingsPage" });
 
         UpdateActiveState();

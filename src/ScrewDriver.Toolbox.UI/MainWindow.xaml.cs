@@ -129,12 +129,21 @@ public partial class MainWindow : Window
 
         if (item.SubItems.Count > 0)
         {
-            if (item.IsActive)
-                item.IsExpanded = !item.IsExpanded;
-            else
+            if (!item.IsActive)
             {
+                // 第一次点击：只选中高亮
+                item.IsActive = true;
+            }
+            else if (!item.IsExpanded)
+            {
+                // 第二次点击（已选中）：展开子项
                 item.IsExpanded = true;
                 vm.NavigateTo(tag);
+            }
+            else
+            {
+                // 已选中且已展开：折叠
+                item.IsExpanded = false;
             }
         }
         else
