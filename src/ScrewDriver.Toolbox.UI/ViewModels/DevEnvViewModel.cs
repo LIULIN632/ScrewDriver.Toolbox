@@ -1,97 +1,126 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Net.Http;
-using System.Net.NetworkInformation;
-using System.Text.Json;
 using System.Windows;
 using System.Windows.Input;
+using ScrewDriver.Toolbox.Core.Services;
 
 namespace ScrewDriver.Toolbox.UI.ViewModels;
 
 public class DevEnvViewModel : BaseViewModel
 {
-    public ObservableCollection<NodeVersionInfo> NodeVersions { get; set; } = new();
-    public ObservableCollection<PortInfo> ActivePorts { get; set; } = new();
-    public ICommand DownloadCommand { get; }
-    public ICommand SwitchCommand { get; }
-    public ICommand KillProcessCommand { get; }
+    // 环境诊断
+    public ObservableCollection<EnvironmentDiagnosticService.DiagnosticItem> Diagnostics { get; } = new();
+    
+    // 运行时版本
+    public ObservableCollection<EnvironmentDiagnosticService.RuntimeInfo> Runtimes { get; } = new();
+
+    // 端口管理
+    public ObservableCollection<PortInfo> ActivePorts { get; } = new();
+
+    // 镜像源
+    public string CurrentNpmRegistry { get; set; } = "";
+    public string CurrentPipSource { get; set; } = "";
+    public string CurrentGoProxy { get; set; } = "";
+
+    public ICommand RefreshDiagnosticsCommand { get; }
     public ICommand RefreshPortsCommand { get; }
+    public ICommand KillProcessCommand { get; }
+    public ICommand SetNpmRegistryCommand { get; }
+    public ICommand SetPipSourceCommand { get; }
+    public ICommand SetGoProxyCommand { get; }
 
     public DevEnvViewModel()
     {
-        DownloadCommand = new RelayCommand<string>(DownloadNode);
-        SwitchCommand = new RelayCommand<string>(SwitchNode);
-        KillProcessCommand = new RelayCommand<int>(KillProcess);
+        RefreshDiagnosticsCommand = new RelayCommand(_ => LoadDiagnostics());
         RefreshPortsCommand = new RelayCommand(_ => LoadPorts());
-        _ = LoadNodeVersionsAsync();
+        KillProcessCommand = new RelayCommand<int>(KillProcess);
+        SetNpmRegistryCommand = new RelayCommand<string>(url => { MirrorConfigService.SetNpmRegistry(url!); CurrentNpmRegistry = MirrorConfigService.GetCurrentNpmRegistry(); });
+        SetPipSourceCommand   = new RelayCommand<string>(url => { MirrorConfigService.SetPipSource(url!);   CurrentPipSource  = MirrorConfigService.GetCurrentPipSource(); });
+        SetGoProxyCommand     = new RelayCommand<string>(url => { MirrorConfigService.SetGoProxy(url!);     CurrentGoProxy    = MirrorConfigService.GetCurrentGoProxy(); });
+
+        LoadDiagnostics();
         LoadPorts();
+        LoadMirrorStatus();
     }
 
-    private async Task LoadNodeVersionsAsync()
+    private void LoadDiagnostics()
     {
-        try
+        System.Windows.Application.Current.Dispatcher.Invoke(() =>
         {
-            using var client = new HttpClient();
-            var json = await client.GetStringAsync("https://nodejs.org/dist/index.json");
-            using var doc = JsonDocument.Parse(json);
-            System.Windows.Application.Current.Dispatcher.Invoke(() =>
-            {
-                NodeVersions.Clear();
-                foreach (var element in doc.RootElement.EnumerateArray())
-                {
-                    if (element.TryGetProperty("version", out var verProp) && verProp.GetString().StartsWith("v18"))
-                    {
-                        NodeVersions.Add(new NodeVersionInfo
-                        {
-                            Version = verProp.GetString(),
-                            Status = "未安装"
-                        });
-                    }
-                }
-            });
-        }
-        catch { }
+            Diagnostics.Clear();
+            foreach (var item in EnvironmentDiagnosticService.RunDiagnostics())
+                Diagnostics.Add(item);
+        });
+
+        System.Windows.Application.Current.Dispatcher.Invoke(() =>
+        {
+            Runtimes.Clear();
+            foreach (var rt in EnvironmentDiagnosticService.DiscoverRuntimes())
+                Runtimes.Add(rt);
+        });
     }
 
     private void LoadPorts()
     {
-        ActivePorts.Clear();
-        var properties = IPGlobalProperties.GetIPGlobalProperties();
-        var connections = properties.GetActiveTcpConnections();
-        foreach (var conn in connections)
+        System.Windows.Application.Current.Dispatcher.Invoke(() => ActivePorts.Clear());
+        var ports = new List<PortInfo>();
+
+        // 使用 netstat 获取端口和 PID
+        try
         {
-            if (conn.State == TcpState.Listen || conn.State == TcpState.Established)
+            var psi = new ProcessStartInfo("netstat", "-ano")
             {
-                ActivePorts.Add(new PortInfo
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            using var p = Process.Start(psi);
+            if (p != null)
+            {
+                var output = p.StandardOutput.ReadToEnd();
+                p.WaitForExit();
+                foreach (var line in output.Split('\n'))
                 {
-                    Port = conn.LocalEndPoint.Port,
-                    State = conn.State.ToString(),
-                    PID = 0
-                });
+                    var parts = line.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    if (parts.Length >= 5 && parts[0] == "TCP" && parts[3] == "LISTENING")
+                    {
+                        var portStr = parts[1].Split(':').Last();
+                        if (int.TryParse(portStr, out var port) && int.TryParse(parts[4], out var pid))
+                        {
+                            var processName = "";
+                            if (pid > 0)
+                            {
+                                try { processName = Process.GetProcessById(pid)?.ProcessName ?? ""; } catch { }
+                            }
+                            ports.Add(new PortInfo { Port = port, State = "LISTEN", PID = pid, ProcessName = processName });
+                        }
+                    }
+                }
             }
         }
+        catch { }
+
+        System.Windows.Application.Current.Dispatcher.Invoke(() =>
+        {
+            foreach (var p in ports) ActivePorts.Add(p);
+        });
     }
 
-    private void DownloadNode(string version)
+    private void LoadMirrorStatus()
     {
-        System.Windows.MessageBox.Show($"开始下载 {version}，这里应实现 HttpClient 下载进度和 ZipFile 解压。");
-    }
-
-    private void SwitchNode(string version)
-    {
-        System.Windows.MessageBox.Show($"将环境变量切换至 {version}，需要修改 PATH 并广播 WM_SETTINGCHANGE。");
+        CurrentNpmRegistry = MirrorConfigService.GetCurrentNpmRegistry();
+        CurrentPipSource   = MirrorConfigService.GetCurrentPipSource();
+        CurrentGoProxy     = MirrorConfigService.GetCurrentGoProxy();
     }
 
     private void KillProcess(int pid)
     {
         try
         {
-            if (pid > 0)
-            {
-                var proc = Process.GetProcessById(pid);
-                proc.Kill();
-                LoadPorts();
-            }
+            if (pid <= 0) return;
+            var proc = Process.GetProcessById(pid);
+            proc.Kill();
+            LoadPorts();
         }
         catch (Exception ex)
         {
@@ -100,15 +129,10 @@ public class DevEnvViewModel : BaseViewModel
     }
 }
 
-public class NodeVersionInfo
-{
-    public string Version { get; set; } = "";
-    public string Status { get; set; } = "";
-}
-
 public class PortInfo
 {
     public int Port { get; set; }
     public string State { get; set; } = "";
     public int PID { get; set; }
+    public string ProcessName { get; set; } = "";
 }
